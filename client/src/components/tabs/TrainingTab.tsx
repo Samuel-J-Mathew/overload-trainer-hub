@@ -388,7 +388,7 @@ export const TrainingTab = ({ clientId }: TrainingTabProps) => {
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium">{formatWorkoutDate(entry.date)}</span>
                       <span className="text-gray-600">
-                        {entry.sets}x{entry.reps} @ {entry.weight} lbs
+                        {entry.sets} sets x {entry.reps} reps x {entry.weight} lbs
                       </span>
                     </div>
                   ))}
