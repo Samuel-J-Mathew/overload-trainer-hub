@@ -25,23 +25,36 @@ export const MetricsTab = ({ clientId }: MetricsTabProps) => {
   const loadWeightData = async () => {
     try {
       setLoading(true);
+      console.log("Loading weight data for clientId:", clientId);
+      
+      if (!clientId) {
+        console.log("No clientId provided");
+        setWeightData([]);
+        setLoading(false);
+        return;
+      }
+
       const weightLogsRef = collection(db, `users/${clientId}/weightLogs`);
-      const weightQuery = query(weightLogsRef);
-      const snapshot = await getDocs(weightQuery);
+      const snapshot = await getDocs(weightLogsRef);
+      
+      console.log("Weight logs snapshot size:", snapshot.size);
       
       const entries: WeightEntry[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log("Weight log document:", doc.id, data);
+        
         if (data.weight && data.date) {
           entries.push({
             date: data.date.toDate ? data.date.toDate() : new Date(data.date),
-            weight: data.weight
+            weight: Number(data.weight)
           });
         }
       });
 
       // Sort by date ascending for time series
       entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+      console.log("Processed weight entries:", entries);
       setWeightData(entries);
     } catch (error) {
       console.error("Error loading weight data:", error);

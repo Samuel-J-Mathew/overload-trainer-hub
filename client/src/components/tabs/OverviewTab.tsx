@@ -58,23 +58,34 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   const loadWeightData = async () => {
     try {
+      console.log("Loading weight data for client:", client.firebaseUid);
+      if (!client.firebaseUid) {
+        console.log("No firebaseUid found");
+        setWeightData([]);
+        return;
+      }
+
       const weightLogsRef = collection(db, `users/${client.firebaseUid}/weightLogs`);
-      const weightQuery = query(weightLogsRef, orderBy("date", "desc"), limit(30));
-      const snapshot = await getDocs(weightQuery);
+      const snapshot = await getDocs(weightLogsRef);
+      
+      console.log("Weight logs snapshot size:", snapshot.size);
       
       const entries: WeightEntry[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log("Weight log document:", doc.id, data);
+        
         if (data.weight && data.date) {
           entries.push({
             date: data.date.toDate ? data.date.toDate() : new Date(data.date),
-            weight: data.weight
+            weight: Number(data.weight)
           });
         }
       });
 
       // Sort by date ascending for chart
       entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+      console.log("Processed weight entries:", entries);
       setWeightData(entries);
     } catch (error) {
       console.error("Error loading weight data:", error);
@@ -84,62 +95,89 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   const loadActivityData = async () => {
     try {
+      console.log("Loading activity data for client:", client.firebaseUid);
+      if (!client.firebaseUid) {
+        console.log("No firebaseUid found for activity");
+        setActivityLog([]);
+        return;
+      }
+
       const activities: ActivityEntry[] = [];
       const last30Days = subDays(new Date(), 30);
 
       // Load workout logs
-      const workoutLogsRef = collection(db, `users/${client.firebaseUid}/workouts`);
-      const workoutSnapshot = await getDocs(workoutLogsRef);
-      
-      for (const workoutDoc of workoutSnapshot.docs) {
-        const dateStr = workoutDoc.id; // YYYYMMDD format
-        const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+      try {
+        const workoutLogsRef = collection(db, `users/${client.firebaseUid}/workouts`);
+        const workoutSnapshot = await getDocs(workoutLogsRef);
+        console.log("Workout logs found:", workoutSnapshot.size);
         
-        if (date >= last30Days) {
-          const exercisesRef = collection(db, `users/${client.firebaseUid}/workouts/${dateStr}/exercises`);
-          const exerciseSnapshot = await getDocs(exercisesRef);
+        for (const workoutDoc of workoutSnapshot.docs) {
+          const dateStr = workoutDoc.id; // YYYYMMDD format
+          console.log("Processing workout date:", dateStr);
           
-          if (!exerciseSnapshot.empty) {
-            activities.push({
-              date,
-              type: 'workout',
-              description: `Completed workout – ${exerciseSnapshot.size} exercises logged`,
-              icon: '🏋️'
-            });
+          if (dateStr.length === 8) {
+            const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+            
+            if (date >= last30Days) {
+              const exercisesRef = collection(db, `users/${client.firebaseUid}/workouts/${dateStr}/exercises`);
+              const exerciseSnapshot = await getDocs(exercisesRef);
+              
+              if (!exerciseSnapshot.empty) {
+                activities.push({
+                  date,
+                  type: 'workout',
+                  description: `Completed workout – ${exerciseSnapshot.size} exercises logged`,
+                  icon: '🏋️'
+                });
+                console.log("Added workout activity for", dateStr, "with", exerciseSnapshot.size, "exercises");
+              }
+            }
           }
         }
+      } catch (workoutError) {
+        console.error("Error loading workout data:", workoutError);
       }
 
       // Load nutrition logs
-      const nutritionLogsRef = collection(db, `users/${client.firebaseUid}/foods`);
-      const nutritionSnapshot = await getDocs(nutritionLogsRef);
-      
-      for (const nutritionDoc of nutritionSnapshot.docs) {
-        const dateStr = nutritionDoc.id; // YYYYMMDD format
-        const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+      try {
+        const nutritionLogsRef = collection(db, `users/${client.firebaseUid}/foods`);
+        const nutritionSnapshot = await getDocs(nutritionLogsRef);
+        console.log("Nutrition logs found:", nutritionSnapshot.size);
         
-        if (date >= last30Days) {
-          const entriesRef = collection(db, `users/${client.firebaseUid}/foods/${dateStr}/entries`);
-          const entriesSnapshot = await getDocs(entriesRef);
+        for (const nutritionDoc of nutritionSnapshot.docs) {
+          const dateStr = nutritionDoc.id; // YYYYMMDD format
+          console.log("Processing nutrition date:", dateStr);
           
-          if (!entriesSnapshot.empty) {
-            let totalCalories = 0;
-            entriesSnapshot.forEach((doc) => {
-              const data = doc.data();
-              totalCalories += parseFloat(data.calories || 0);
-            });
+          if (dateStr.length === 8) {
+            const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+            
+            if (date >= last30Days) {
+              const entriesRef = collection(db, `users/${client.firebaseUid}/foods/${dateStr}/entries`);
+              const entriesSnapshot = await getDocs(entriesRef);
+              
+              if (!entriesSnapshot.empty) {
+                let totalCalories = 0;
+                entriesSnapshot.forEach((doc) => {
+                  const data = doc.data();
+                  totalCalories += Number(data.calories || 0);
+                });
 
-            activities.push({
-              date,
-              type: 'nutrition',
-              description: `Logged ${entriesSnapshot.size} meals – ${Math.round(totalCalories)} calories`,
-              icon: '🍎'
-            });
+                activities.push({
+                  date,
+                  type: 'nutrition',
+                  description: `Logged ${entriesSnapshot.size} meals – ${Math.round(totalCalories)} calories`,
+                  icon: '🍎'
+                });
+                console.log("Added nutrition activity for", dateStr, "with", entriesSnapshot.size, "entries");
+              }
+            }
           }
         }
+      } catch (nutritionError) {
+        console.error("Error loading nutrition data:", nutritionError);
       }
 
-      // Load weight logs for activity
+      // Add weight logs from already loaded weight data
       const recentWeights = weightData.filter(w => w.date >= last30Days);
       recentWeights.forEach((entry) => {
         activities.push({
@@ -152,6 +190,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
       // Sort by date descending (newest first)
       activities.sort((a, b) => b.date.getTime() - a.date.getTime());
+      console.log("Total activities loaded:", activities.length);
       setActivityLog(activities);
     } catch (error) {
       console.error("Error loading activity data:", error);
@@ -161,21 +200,19 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!client.firebaseUid) return;
+      if (!client.firebaseUid) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       await loadWeightData();
+      await loadActivityData();
       setLoading(false);
     };
 
     loadData();
   }, [client.firebaseUid]);
-
-  useEffect(() => {
-    if (!client.firebaseUid || weightData.length === 0) return;
-    
-    loadActivityData();
-  }, [client.firebaseUid, weightData]);
 
   // Calculate weight metrics
   const currentWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : null;
