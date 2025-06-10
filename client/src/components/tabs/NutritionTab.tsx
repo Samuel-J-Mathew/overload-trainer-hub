@@ -267,7 +267,10 @@ export const NutritionTab = ({ clientId }: NutritionTabProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedWeek(subWeeks(selectedWeek, 1))}
+                onClick={() => {
+                  setSelectedWeek(subWeeks(selectedWeek, 1));
+                  setSelectedDay(null); // Clear selected day when changing weeks
+                }}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -277,7 +280,10 @@ export const NutritionTab = ({ clientId }: NutritionTabProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedWeek(addWeeks(selectedWeek, 1))}
+                onClick={() => {
+                  setSelectedWeek(addWeeks(selectedWeek, 1));
+                  setSelectedDay(null); // Clear selected day when changing weeks
+                }}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -285,6 +291,103 @@ export const NutritionTab = ({ clientId }: NutritionTabProps) => {
           </CardTitle>
         </CardHeader>
       </Card>
+
+      {/* Weekly Calendar View */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Logged Meals Calendar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-2">
+            {weekDates.map(date => {
+              const dateKey = formatDateForFirebase(date);
+              const dayData = weeklyData[dateKey];
+              const hasData = dayData && dayData.entries.length > 0;
+              const isSelected = selectedDay && format(selectedDay, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+              
+              return (
+                <button
+                  key={dateKey}
+                  onClick={() => setSelectedDay(date)}
+                  className={`
+                    relative p-3 text-center border rounded-lg transition-colors
+                    ${isSelected 
+                      ? 'bg-blue-500 text-white border-blue-500' 
+                      : 'bg-white hover:bg-gray-50 border-gray-200'
+                    }
+                  `}
+                >
+                  <div className="text-xs text-gray-500 mb-1">
+                    {format(date, 'EEE')}
+                  </div>
+                  <div className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                    {format(date, 'd')}
+                  </div>
+                  {hasData && (
+                    <div className={`
+                      w-2 h-2 rounded-full mx-auto mt-1
+                      ${isSelected ? 'bg-white' : 'bg-blue-500'}
+                    `} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected Day View */}
+      {selectedDay && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {format(selectedDay, 'EEEE, MMMM d')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!selectedDayData || selectedDayData.entries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No food entries logged for this day</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Daily Total Macros */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Daily Total</h4>
+                  <div className="text-sm text-gray-600">
+                    {Math.round(selectedDayData.summary.totalCalories)} Cals | {' '}
+                    {Math.round(selectedDayData.summary.totalProtein)}g Protein | {' '}
+                    {Math.round(selectedDayData.summary.totalCarbs)}g Carbs | {' '}
+                    {Math.round(selectedDayData.summary.totalFats)}g Fats
+                  </div>
+                </div>
+
+                {/* Food List */}
+                <div className="space-y-3">
+                  {selectedDayData.entries.map((entry) => (
+                    <div key={entry.id} className="border-l-4 border-l-blue-500 pl-4 py-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="font-medium">{entry.name}</span>
+                          <span className="text-sm text-gray-500">
+                            {formatTime(entry.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {Math.round(parseFloat(entry.calories) || 0)} Cals | {' '}
+                        {Math.round(parseFloat(entry.protein) || 0)}g Protein | {' '}
+                        {Math.round(parseFloat(entry.carbs) || 0)}g Carbs | {' '}
+                        {Math.round(parseFloat(entry.fats) || 0)}g Fats
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Macros Target Chart */}
       <Card>
