@@ -21,11 +21,12 @@ export const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showBanner, setShowBanner] = useState(true);
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return "?";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (name?: string) => {
     const colors = [
       'bg-orange-500',
       'bg-pink-500', 
@@ -34,7 +35,7 @@ export const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
       'bg-purple-500',
       'bg-yellow-500'
     ];
-    const index = name.length % colors.length;
+    const index = (name?.length || 0) % colors.length;
     return colors[index];
   };
 
@@ -68,7 +69,7 @@ export const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
             <Button variant="ghost" size="sm" onClick={onBack}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{client.name || "Unknown Client"}</h1>
           </div>
         </div>
       </header>
@@ -85,8 +86,8 @@ export const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{client.name}</h2>
-                <p className="text-gray-500">{client.email}</p>
+                <h2 className="text-2xl font-bold text-gray-900">{client.name || "Unknown Client"}</h2>
+                <p className="text-gray-500">{client.email || "No email"}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">

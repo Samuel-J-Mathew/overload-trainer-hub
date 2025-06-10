@@ -41,7 +41,7 @@ export default function Dashboard() {
       {selectedClient ? (
         <ClientDetail client={selectedClient} onBack={handleBackToClients} />
       ) : (
-        <ClientsTable clients={clients} onClientSelect={handleClientSelect} />
+        <ClientsTable clients={clients as Client[]} onClientSelect={handleClientSelect} />
       )}
     </Layout>
   );

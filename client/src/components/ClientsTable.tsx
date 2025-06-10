@@ -16,15 +16,16 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
   const [showAddModal, setShowAddModal] = useState(false);
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (client.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (client.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return "?";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (name?: string) => {
     const colors = [
       'bg-orange-500',
       'bg-pink-500', 
@@ -33,7 +34,7 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
       'bg-purple-500',
       'bg-yellow-500'
     ];
-    const index = name.length % colors.length;
+    const index = (name?.length || 0) % colors.length;
     return colors[index];
   };
 
@@ -133,10 +134,10 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {client.name}
+                              {client.name || "Unknown Client"}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {client.email}
+                              {client.email || "No email"}
                             </div>
                           </div>
                         </div>
