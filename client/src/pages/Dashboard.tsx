@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCollection } from "@/hooks/useFirestore";
+import { useAuth } from "@/hooks/useAuth";
 import { Client } from "@/types/client";
 import { Layout } from "@/components/Layout";
 import { ClientsTable } from "@/components/ClientsTable";
@@ -7,7 +8,12 @@ import { ClientDetail } from "@/components/ClientDetail";
 
 export default function Dashboard() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const { data: clients, loading } = useCollection("clients");
+  const { user } = useAuth();
+  
+  // Query clients from the coach's subcollection
+  const { data: clients, loading } = useCollection(
+    user ? `coaches/${user.uid}/clients` : ""
+  );
 
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);

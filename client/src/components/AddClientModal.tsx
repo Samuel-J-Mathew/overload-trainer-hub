@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -27,8 +28,12 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFirestore } from "@/hooks/useFirestore";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Users, X } from "lucide-react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 const addClientSchema = z.object({
   name: z.string().min(1, "Client name is required"),
@@ -38,6 +43,9 @@ const addClientSchema = z.object({
   onboarding: z.string().optional(),
   setDates: z.boolean().default(false),
   emailInstructions: z.boolean().default(false),
+  currentWeight: z.string().optional(),
+  goalWeight: z.string().optional(),
+  goal: z.string().optional(),
 });
 
 type AddClientFormData = z.infer<typeof addClientSchema>;
@@ -49,7 +57,7 @@ interface AddClientModalProps {
 
 export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addDocument } = useFirestore("clients");
+  const { user } = useAuth(); // Current coach user
   const { toast } = useToast();
 
   const form = useForm<AddClientFormData>({
@@ -62,42 +70,87 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
       onboarding: "",
       setDates: false,
       emailInstructions: false,
+      currentWeight: "",
+      goalWeight: "",
+      goal: "",
     },
   });
 
   const onSubmit = async (data: AddClientFormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add clients.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
+      // Step 1: Create Firebase Auth user for the client
+      const clientAuthResult = await createUserWithEmailAndPassword(
+        auth, 
+        data.email, 
+        "password" // Default password
+      );
+      
+      const clientUID = clientAuthResult.user.uid;
+      const [firstName, ...lastNameParts] = data.name.split(" ");
+      const lastName = lastNameParts.join(" ");
+
+      // Step 2: Create user document in /users/{uid}
+      await setDoc(doc(db, "users", clientUID), {
+        uid: clientUID,
+        email: data.email,
+        firstName: firstName || data.name,
+        lastName: lastName || "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Step 3: Add client to coach's client list in /coaches/{coachUID}/clients/{clientUID}
       const clientData = {
-        firebaseUid: `client_${Date.now()}`, // Temporary UID generation
+        uid: clientUID,
         name: data.name,
         email: data.email,
         tag: data.tag || null,
+        goal: data.goal || null,
+        currentWeight: data.currentWeight ? parseFloat(data.currentWeight) : null,
+        goalWeight: data.goalWeight ? parseFloat(data.goalWeight) : null,
+        questionnaire: data.questionnaire || null,
+        onboarding: data.onboarding || null,
+        setDates: data.setDates,
+        emailInstructions: data.emailInstructions,
         duration: "active",
         lastActive: new Date(),
+        lastCheckin: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
-      const { error } = await addDocument(clientData);
+      await setDoc(doc(db, "coaches", user.uid, "clients", clientUID), clientData);
+
+      // Step 4: Also add to the main clients collection for easy querying
+      await setDoc(doc(db, "clients", clientUID), {
+        ...clientData,
+        coachUID: user.uid,
+      });
+
+      toast({
+        title: "Success",
+        description: `Client ${data.name} added successfully! They can now log in with email: ${data.email} and password: "password"`,
+      });
       
-      if (error) {
-        toast({
-          title: "Error",
-          description: error,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Client added successfully!",
-        });
-        form.reset();
-        onOpenChange(false);
-      }
-    } catch (error) {
+      form.reset();
+      onOpenChange(false);
+      
+    } catch (error: any) {
+      console.error("Error creating client:", error);
       toast({
         title: "Error",
-        description: "Failed to add client. Please try again.",
+        description: error.message || "Failed to create client. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -128,6 +181,9 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
               </Button>
             </div>
           </div>
+          <DialogDescription>
+            Create a new client account with Firebase authentication and add them to your coaching roster.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -239,6 +295,64 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="goal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Goal</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Lose 10kg, Build muscle, Get stronger"
+                      {...field}
+                      className="hubfit-input"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="currentWeight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Weight (kg)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="70"
+                        {...field}
+                        className="hubfit-input"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="goalWeight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Goal Weight (kg)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="65"
+                        {...field}
+                        className="hubfit-input"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="space-y-3">
               <FormField
