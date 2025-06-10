@@ -37,10 +37,13 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
     return colors[index];
   };
 
-  const formatDate = (date?: Date) => {
+  const formatDate = (date?: any) => {
     if (!date) return "Never";
+    
+    // Handle Firestore Timestamp objects
+    const dateObj = date.toDate ? date.toDate() : new Date(date);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffTime = Math.abs(now.getTime() - dateObj.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 1) return "1 day ago";
