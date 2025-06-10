@@ -1,0 +1,82 @@
+Build a modern and responsive web client for my fitness coaching app Overload. Use:
+
+React (frontend framework)
+
+Tailwind CSS (utility-first styling)
+
+Firebase (Firestore for data, Firebase Auth, and Firebase Storage)
+
+This app should connect to my Firebase project and access real-time data from:
+
+Client profiles
+
+Workouts
+
+Nutrition logs
+
+Check-ins
+
+Metrics (body fat %, weight, etc.)
+
+Step counts
+
+🌟 Design Style:
+Match the layout and UX of Hubfit (I'll upload screenshots). Use clean cards, tabs, and charts to organize data. Mobile responsiveness is required.
+
+🧠 Focus on the Clients Tab, with these sections:
+1. Overview
+Show profile image, name, current weight, goal weight, target body fat %
+
+Display assigned workout split and next check-in date
+
+Display current step count and weekly average steps (from Firebase)
+
+2. Check-ins
+Pull weekly check-ins including weight, progress photos, and written reflections
+
+Allow expandable UI to view details
+
+All check-ins are stored in Firestore under each user’s collection
+
+3. Training
+Show current training split
+
+List recent workouts: exercises, sets, reps, weight, time
+
+Pull from the workout_data collection
+
+4. Nutrition
+Show daily food logs with calories, protein, carbs, and fat
+
+Pull from the FoodLogPage data
+
+Include charts to visualize macro trends (last 7 days)
+
+5. Metrics
+Plot body fat %, weight, and calorie adherence over time
+
+Display trend lines or bar charts using Chart.js or Recharts
+
+6. Step Count (NEW)
+Include a dedicated module or widget on Overview and Metrics
+
+Show:
+
+Today's step count
+
+Weekly average
+
+Step streaks (if possible)
+
+Data comes from Firebase, stored as daily step entries
+
+🔐 Auth & Structure
+Use Firebase Auth to restrict access
+
+Modular React components per section
+
+All data is stored in Firestore using a nested structure (e.g. users/{uid}/checkins, users/{uid}/workouts, etc.)
+
+Use real-time listeners for up-to-date UI where needed
+
+Focus on Clients tab first. Then allow easy expansion to other tabs like calendar, chat, or programs later.
