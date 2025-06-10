@@ -47,6 +47,7 @@ interface MacroVisibility {
 
 export const NutritionTab = ({ clientId }: NutritionTabProps) => {
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [weeklyData, setWeeklyData] = useState<WeeklyData>({});
   const [macroVisibility, setMacroVisibility] = useState<MacroVisibility>({
     calories: true,
@@ -250,6 +251,10 @@ export const NutritionTab = ({ clientId }: NutritionTabProps) => {
   const { totals, averages } = getWeeklySummary();
   const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(selectedWeek, { weekStartsOn: 1 });
+  const weekDates = getWeekDates(selectedWeek);
+
+  // Get selected day data for display
+  const selectedDayData = selectedDay ? weeklyData[formatDateForFirebase(selectedDay)] : null;
 
   return (
     <div className="space-y-6">
@@ -424,59 +429,102 @@ export const NutritionTab = ({ clientId }: NutritionTabProps) => {
         </Card>
       </div>
 
-      {/* Daily Food Logs */}
+      {/* Weekly Calendar View */}
       <Card>
         <CardHeader>
-          <CardTitle>Daily Food Logs</CardTitle>
+          <CardTitle>Logged Meals Calendar</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {getWeekDates(selectedWeek).map(date => {
+          <div className="grid grid-cols-7 gap-2">
+            {weekDates.map(date => {
               const dateKey = formatDateForFirebase(date);
               const dayData = weeklyData[dateKey];
-              const dayName = format(date, 'EEEE, MMMM d');
+              const hasData = dayData && dayData.entries.length > 0;
+              const isSelected = selectedDay && format(selectedDay, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
               
               return (
-                <div key={dateKey} className="border rounded-lg p-4">
-                  <h4 className="font-semibold text-lg mb-3">{dayName}</h4>
-                  
-                  {!dayData || dayData.entries.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No food logged for this day</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-4 gap-4 text-sm text-gray-600 mb-2">
-                        <span>Total: {Math.round(dayData.summary.totalCalories)} cal</span>
-                        <span>{Math.round(dayData.summary.totalProtein)}g protein</span>
-                        <span>{Math.round(dayData.summary.totalCarbs)}g carbs</span>
-                        <span>{Math.round(dayData.summary.totalFats)}g fats</span>
-                      </div>
-                      
-                      <div className="divide-y divide-gray-100">
-                        {dayData.entries.map((entry) => (
-                          <div key={entry.id} className="py-2 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <span className="text-sm text-gray-500">
-                                {formatTime(entry.timestamp)}
-                              </span>
-                              <span className="font-medium">{entry.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              <span>{Math.round(parseFloat(entry.calories) || 0)} cal</span>
-                              <span>{Math.round(parseFloat(entry.protein) || 0)}g protein</span>
-                              <span>{Math.round(parseFloat(entry.carbs) || 0)}g carbs</span>
-                              <span>{Math.round(parseFloat(entry.fats) || 0)}g fats</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                <button
+                  key={dateKey}
+                  onClick={() => setSelectedDay(date)}
+                  className={`
+                    relative p-3 text-center border rounded-lg transition-colors
+                    ${isSelected 
+                      ? 'bg-blue-500 text-white border-blue-500' 
+                      : 'bg-white hover:bg-gray-50 border-gray-200'
+                    }
+                  `}
+                >
+                  <div className="text-xs text-gray-500 mb-1">
+                    {format(date, 'EEE')}
+                  </div>
+                  <div className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                    {format(date, 'd')}
+                  </div>
+                  {hasData && (
+                    <div className={`
+                      w-2 h-2 rounded-full mx-auto mt-1
+                      ${isSelected ? 'bg-white' : 'bg-blue-500'}
+                    `} />
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
         </CardContent>
       </Card>
+
+      {/* Selected Day View */}
+      {selectedDay && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {format(selectedDay, 'EEEE, MMMM d')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!selectedDayData || selectedDayData.entries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No food entries logged for this day</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Daily Total Macros */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Daily Total</h4>
+                  <div className="text-sm text-gray-600">
+                    {Math.round(selectedDayData.summary.totalCalories)} Cals | {' '}
+                    {Math.round(selectedDayData.summary.totalProtein)}g Protein | {' '}
+                    {Math.round(selectedDayData.summary.totalCarbs)}g Carbs | {' '}
+                    {Math.round(selectedDayData.summary.totalFats)}g Fats
+                  </div>
+                </div>
+
+                {/* Food List */}
+                <div className="space-y-3">
+                  {selectedDayData.entries.map((entry) => (
+                    <div key={entry.id} className="border-l-4 border-l-blue-500 pl-4 py-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="font-medium">{entry.name}</span>
+                          <span className="text-sm text-gray-500">
+                            {formatTime(entry.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {Math.round(parseFloat(entry.calories) || 0)} Cals | {' '}
+                        {Math.round(parseFloat(entry.protein) || 0)}g Protein | {' '}
+                        {Math.round(parseFloat(entry.carbs) || 0)}g Carbs | {' '}
+                        {Math.round(parseFloat(entry.fats) || 0)}g Fats
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
