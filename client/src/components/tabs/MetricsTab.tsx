@@ -22,6 +22,9 @@ export const MetricsTab = ({ clientId }: MetricsTabProps) => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("last-month");
 
+  // Debug client data
+  console.log("MetricsTab clientId:", clientId);
+
   const loadWeightData = async () => {
     try {
       setLoading(true);

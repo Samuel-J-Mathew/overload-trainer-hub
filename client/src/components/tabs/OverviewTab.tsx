@@ -41,6 +41,11 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
   const [activityLog, setActivityLog] = useState<ActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Debug client data
+  console.log("OverviewTab client object:", client);
+  console.log("Client firebaseUid:", client?.firebaseUid);
+  console.log("Client id:", client?.id);
+
   const formatDate = (date?: any) => {
     if (!date) return "Never";
     
@@ -58,16 +63,22 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   const loadWeightData = async () => {
     try {
-      console.log("Loading weight data for client:", client.firebaseUid);
-      if (!client.firebaseUid) {
-        console.log("No firebaseUid found");
+      // Try firebaseUid first, then fallback to id
+      const userId = client.firebaseUid || client.id;
+      console.log("Loading weight data for userId:", userId);
+      console.log("Using firebaseUid:", client.firebaseUid);
+      console.log("Using id:", client.id);
+      
+      if (!userId) {
+        console.log("No userId found");
         setWeightData([]);
         return;
       }
 
-      const weightLogsRef = collection(db, `users/${client.firebaseUid}/weightLogs`);
-      const snapshot = await getDocs(weightLogsRef);
+      const weightLogsRef = collection(db, `users/${userId}/weightLogs`);
+      console.log("Attempting to fetch from path:", `users/${userId}/weightLogs`);
       
+      const snapshot = await getDocs(weightLogsRef);
       console.log("Weight logs snapshot size:", snapshot.size);
       
       const entries: WeightEntry[] = [];
@@ -95,9 +106,12 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   const loadActivityData = async () => {
     try {
-      console.log("Loading activity data for client:", client.firebaseUid);
-      if (!client.firebaseUid) {
-        console.log("No firebaseUid found for activity");
+      // Try firebaseUid first, then fallback to id
+      const userId = client.firebaseUid || client.id;
+      console.log("Loading activity data for userId:", userId);
+      
+      if (!userId) {
+        console.log("No userId found for activity");
         setActivityLog([]);
         return;
       }
@@ -107,7 +121,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
       // Load workout logs
       try {
-        const workoutLogsRef = collection(db, `users/${client.firebaseUid}/workouts`);
+        const workoutLogsRef = collection(db, `users/${userId}/workouts`);
         const workoutSnapshot = await getDocs(workoutLogsRef);
         console.log("Workout logs found:", workoutSnapshot.size);
         
@@ -119,7 +133,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
             const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
             
             if (date >= last30Days) {
-              const exercisesRef = collection(db, `users/${client.firebaseUid}/workouts/${dateStr}/exercises`);
+              const exercisesRef = collection(db, `users/${userId}/workouts/${dateStr}/exercises`);
               const exerciseSnapshot = await getDocs(exercisesRef);
               
               if (!exerciseSnapshot.empty) {
@@ -140,7 +154,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
       // Load nutrition logs
       try {
-        const nutritionLogsRef = collection(db, `users/${client.firebaseUid}/foods`);
+        const nutritionLogsRef = collection(db, `users/${userId}/foods`);
         const nutritionSnapshot = await getDocs(nutritionLogsRef);
         console.log("Nutrition logs found:", nutritionSnapshot.size);
         
@@ -152,7 +166,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
             const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
             
             if (date >= last30Days) {
-              const entriesRef = collection(db, `users/${client.firebaseUid}/foods/${dateStr}/entries`);
+              const entriesRef = collection(db, `users/${userId}/foods/${dateStr}/entries`);
               const entriesSnapshot = await getDocs(entriesRef);
               
               if (!entriesSnapshot.empty) {
@@ -200,7 +214,8 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!client.firebaseUid) {
+      const userId = client.firebaseUid || client.id;
+      if (!userId) {
         setLoading(false);
         return;
       }
@@ -212,7 +227,7 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
     };
 
     loadData();
-  }, [client.firebaseUid]);
+  }, [client.firebaseUid, client.id]);
 
   // Calculate weight metrics
   const currentWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : null;
