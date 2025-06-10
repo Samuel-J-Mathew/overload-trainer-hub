@@ -82,7 +82,7 @@
 
 @layer components {
   .hubfit-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply bg-primary text-primary-foreground hover:opacity-90 transition-opacity;
   }
   
   .hubfit-card {
