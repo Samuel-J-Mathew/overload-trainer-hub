@@ -1,14 +1,46 @@
+import { useState, useEffect } from "react";
 import { Client } from "@/types/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, TrendingUp, Activity, Camera } from "lucide-react";
+import { LineChart } from "@/components/charts/LineChart";
+import { User, TrendingUp, Activity, Camera, Scale, Dumbbell, Apple } from "lucide-react";
+import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { format, subDays, parseISO } from "date-fns";
 
 interface OverviewTabProps {
   client: Client;
 }
 
+interface WeightEntry {
+  date: Date;
+  weight: number;
+}
+
+interface ActivityEntry {
+  date: Date;
+  type: 'workout' | 'nutrition' | 'weight';
+  description: string;
+  icon: string;
+}
+
+interface WorkoutSummary {
+  date: string;
+  exerciseCount: number;
+}
+
+interface NutritionSummary {
+  date: string;
+  entryCount: number;
+  totalCalories: number;
+}
+
 export const OverviewTab = ({ client }: OverviewTabProps) => {
+  const [weightData, setWeightData] = useState<WeightEntry[]>([]);
+  const [activityLog, setActivityLog] = useState<ActivityEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const formatDate = (date?: any) => {
     if (!date) return "Never";
     
@@ -23,6 +55,161 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
     return `${Math.ceil(diffDays / 30)} months ago`;
   };
+
+  const loadWeightData = async () => {
+    try {
+      const weightLogsRef = collection(db, `users/${client.firebaseUid}/weightLogs`);
+      const weightQuery = query(weightLogsRef, orderBy("date", "desc"), limit(30));
+      const snapshot = await getDocs(weightQuery);
+      
+      const entries: WeightEntry[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.weight && data.date) {
+          entries.push({
+            date: data.date.toDate ? data.date.toDate() : new Date(data.date),
+            weight: data.weight
+          });
+        }
+      });
+
+      // Sort by date ascending for chart
+      entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+      setWeightData(entries);
+    } catch (error) {
+      console.error("Error loading weight data:", error);
+      setWeightData([]);
+    }
+  };
+
+  const loadActivityData = async () => {
+    try {
+      const activities: ActivityEntry[] = [];
+      const last30Days = subDays(new Date(), 30);
+
+      // Load workout logs
+      const workoutLogsRef = collection(db, `users/${client.firebaseUid}/workouts`);
+      const workoutSnapshot = await getDocs(workoutLogsRef);
+      
+      for (const workoutDoc of workoutSnapshot.docs) {
+        const dateStr = workoutDoc.id; // YYYYMMDD format
+        const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+        
+        if (date >= last30Days) {
+          const exercisesRef = collection(db, `users/${client.firebaseUid}/workouts/${dateStr}/exercises`);
+          const exerciseSnapshot = await getDocs(exercisesRef);
+          
+          if (!exerciseSnapshot.empty) {
+            activities.push({
+              date,
+              type: 'workout',
+              description: `Completed workout – ${exerciseSnapshot.size} exercises logged`,
+              icon: '🏋️'
+            });
+          }
+        }
+      }
+
+      // Load nutrition logs
+      const nutritionLogsRef = collection(db, `users/${client.firebaseUid}/foods`);
+      const nutritionSnapshot = await getDocs(nutritionLogsRef);
+      
+      for (const nutritionDoc of nutritionSnapshot.docs) {
+        const dateStr = nutritionDoc.id; // YYYYMMDD format
+        const date = parseISO(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+        
+        if (date >= last30Days) {
+          const entriesRef = collection(db, `users/${client.firebaseUid}/foods/${dateStr}/entries`);
+          const entriesSnapshot = await getDocs(entriesRef);
+          
+          if (!entriesSnapshot.empty) {
+            let totalCalories = 0;
+            entriesSnapshot.forEach((doc) => {
+              const data = doc.data();
+              totalCalories += parseFloat(data.calories || 0);
+            });
+
+            activities.push({
+              date,
+              type: 'nutrition',
+              description: `Logged ${entriesSnapshot.size} meals – ${Math.round(totalCalories)} calories`,
+              icon: '🍎'
+            });
+          }
+        }
+      }
+
+      // Load weight logs for activity
+      const recentWeights = weightData.filter(w => w.date >= last30Days);
+      recentWeights.forEach((entry) => {
+        activities.push({
+          date: entry.date,
+          type: 'weight',
+          description: `Weight updated: ${entry.weight.toFixed(1)} lbs`,
+          icon: '⚖️'
+        });
+      });
+
+      // Sort by date descending (newest first)
+      activities.sort((a, b) => b.date.getTime() - a.date.getTime());
+      setActivityLog(activities);
+    } catch (error) {
+      console.error("Error loading activity data:", error);
+      setActivityLog([]);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!client.firebaseUid) return;
+      
+      setLoading(true);
+      await loadWeightData();
+      setLoading(false);
+    };
+
+    loadData();
+  }, [client.firebaseUid]);
+
+  useEffect(() => {
+    if (!client.firebaseUid || weightData.length === 0) return;
+    
+    loadActivityData();
+  }, [client.firebaseUid, weightData]);
+
+  // Calculate weight metrics
+  const currentWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : null;
+  const weekAgoWeight = weightData.length > 1 ? weightData.find(w => {
+    const daysDiff = Math.abs(new Date().getTime() - w.date.getTime()) / (1000 * 60 * 60 * 24);
+    return daysDiff >= 7;
+  })?.weight : null;
+  
+  const weeklyChange = currentWeight && weekAgoWeight ? currentWeight - weekAgoWeight : null;
+
+  // Prepare weight chart data
+  const weightChartData = {
+    labels: weightData.slice(-14).map(entry => format(entry.date, "MMM d")),
+    datasets: [
+      {
+        label: 'Weight (lbs)',
+        data: weightData.slice(-14).map(entry => entry.weight),
+        borderColor: 'rgb(99, 102, 241)',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        tension: 0.1,
+        fill: false
+      }
+    ]
+  };
+
+  // Group activities by date
+  const groupedActivities = activityLog.reduce((groups, activity) => {
+    const dateKey = format(activity.date, 'yyyy-MM-dd');
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(activity);
+    return groups;
+  }, {} as Record<string, ActivityEntry[]>);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -96,35 +283,52 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
 
       {/* Metrics and Activity */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Metrics Avg Card */}
+        {/* Weight Progress Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Metrics Avg
+              <Scale className="w-5 h-5 mr-2" />
+              Weight Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Weight</span>
-                  <span className="text-red-500 text-sm">-22%</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {client.currentWeight ? `${client.currentWeight} kg` : 'No data'}
-                </div>
+            {loading ? (
+              <div className="text-center py-8 text-gray-500">Loading weight data...</div>
+            ) : weightData.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Scale className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No weight data available</p>
+                <p className="text-sm">Weight entries will appear here when logged</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Body Fat</span>
-                  <span className="text-red-500 text-sm">-36%</span>
+            ) : (
+              <div className="space-y-4">
+                {/* Weight Summary */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {currentWeight?.toFixed(1)} lbs
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Current weight
+                    </div>
+                  </div>
+                  {weeklyChange !== null && (
+                    <div className="text-right">
+                      <div className={`text-sm font-medium ${
+                        weeklyChange > 0 ? 'text-red-600' : 
+                        weeklyChange < 0 ? 'text-green-600' : 'text-gray-600'
+                      }`}>
+                        {weeklyChange > 0 ? '+' : ''}{weeklyChange.toFixed(1)} lbs
+                      </div>
+                      <div className="text-xs text-gray-500">7-day change</div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {client.bodyFat ? `${client.bodyFat}%` : 'No data'}
-                </div>
+                
+                {/* Weight Chart */}
+                <LineChart data={weightChartData} height={200} />
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -137,11 +341,36 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center text-gray-500 py-8">
-              <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>No recent activity</p>
-              <p className="text-sm">Activity will appear here when the client starts using the app</p>
-            </div>
+            {loading ? (
+              <div className="text-center py-8 text-gray-500">Loading activity data...</div>
+            ) : Object.keys(groupedActivities).length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No recent activity</p>
+                <p className="text-sm">Activity will appear here when the client starts using the app</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {Object.entries(groupedActivities).map(([dateKey, activities]) => (
+                  <div key={dateKey} className="space-y-2">
+                    <div className="text-sm font-medium text-gray-600 border-b border-gray-100 pb-1">
+                      {format(new Date(dateKey), 'EEEE, MMMM d, yyyy')}
+                    </div>
+                    {activities.map((activity, index) => (
+                      <div key={index} className="flex items-start space-x-3 py-2">
+                        <span className="text-lg">{activity.icon}</span>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">{activity.description}</p>
+                          <p className="text-xs text-gray-500">
+                            {format(activity.date, 'h:mm a')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
