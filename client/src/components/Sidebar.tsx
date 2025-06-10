@@ -23,8 +23,6 @@ const navigation = [
   { name: "Tasks", icon: CheckSquare, href: "#", current: false },
   { name: "Messages", icon: MessageSquare, href: "#", current: false },
   { name: "Packages", icon: Package, href: "#", current: false },
-  { name: "Community", icon: UserCheck, href: "#", current: false },
-  { name: "Teams", icon: Users2, href: "#", current: false },
   { name: "Nutrition", icon: Apple, href: "#", current: false },
   { name: "Forms", icon: FileText, href: "#", current: false },
   { name: "Metrics", icon: BarChart3, href: "#", current: false },
