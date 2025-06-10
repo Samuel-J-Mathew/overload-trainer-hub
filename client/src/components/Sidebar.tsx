@@ -18,7 +18,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/auth";
 
 const navigation = [
-  { name: "Main", icon: Home, href: "#", current: false },
   { name: "Clients", icon: Users, href: "#", current: true },
   { name: "Check Ins", icon: ClipboardCheck, href: "#", current: false },
   { name: "Tasks", icon: CheckSquare, href: "#", current: false },
