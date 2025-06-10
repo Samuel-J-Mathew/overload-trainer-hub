@@ -38,13 +38,11 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="bg-background text-foreground min-h-full">
-        {selectedClient ? (
-          <ClientDetail client={selectedClient} onBack={handleBackToClients} />
-        ) : (
-          <ClientsTable clients={clients as Client[]} onClientSelect={handleClientSelect} />
-        )}
-      </div>
+      {selectedClient ? (
+        <ClientDetail client={selectedClient} onBack={handleBackToClients} />
+      ) : (
+        <ClientsTable clients={clients as Client[]} onClientSelect={handleClientSelect} />
+      )}
     </Layout>
   );
 }

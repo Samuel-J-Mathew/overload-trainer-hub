@@ -56,11 +56,11 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
   return (
     <>
       {/* Header */}
-      <header className="bg-background border-b border-border px-6 py-4">
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-foreground">Clients</h1>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
               <span>{clients.length}</span>
               <span>Clients</span>
             </div>
@@ -72,9 +72,9 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
                 placeholder="Search clients"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground"
+                className="w-64 pl-10"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             </div>
             <Button onClick={() => setShowAddModal(true)} className="hubfit-primary">
               <Plus className="w-4 h-4 mr-2" />
@@ -85,19 +85,19 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
       </header>
 
       {/* Clients Table */}
-      <main className="flex-1 overflow-y-auto p-6 bg-background">
+      <main className="flex-1 overflow-y-auto p-6">
         <div className="hubfit-card mb-6">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted border-b border-border">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Client
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tag
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Last Check-in
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

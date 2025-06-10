@@ -3,39 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 0%);
-  --foreground: hsl(0, 0%, 100%);
-  --muted: hsl(0, 0%, 6.7%);
-  --muted-foreground: hsl(0, 0%, 60%);
-  --popover: hsl(0, 0%, 6.7%);
-  --popover-foreground: hsl(0, 0%, 100%);
-  --card: hsl(0, 0%, 6.7%);
-  --card-foreground: hsl(0, 0%, 100%);
-  --border: hsl(0, 0%, 10%);
-  --input: hsl(0, 0%, 10%);
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
   --primary: hsl(231, 86%, 59%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(0, 0%, 13.3%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(0, 0%, 13.3%);
-  --accent-foreground: hsl(0, 0%, 100%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(0, 0%, 40%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
   --chart-1: hsl(231, 86%, 59%);
   --chart-2: hsl(142, 71%, 45%);
   --chart-3: hsl(39, 84%, 56%);
   --chart-4: hsl(340, 75%, 55%);
-  --chart-5: hsl(197, 37%, 45%);
-  --sidebar-background: hsl(0, 0%, 0%);
-  --sidebar-foreground: hsl(0, 0%, 100%);
+  --chart-5: hsl(197, 37%, 24%);
+  --sidebar-background: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(240, 5.3%, 26.1%);
   --sidebar-primary: hsl(231, 86%, 59%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(0, 0%, 13.3%);
-  --sidebar-accent-foreground: hsl(0, 0%, 100%);
-  --sidebar-border: hsl(0, 0%, 10%);
-  --sidebar-ring: hsl(0, 0%, 40%);
+  --sidebar-primary-foreground: hsl(211, 100%, 99%);
+  --sidebar-accent: hsl(240, 4.8%, 95.9%);
+  --sidebar-accent-foreground: hsl(240, 5.9%, 10%);
+  --sidebar-border: hsl(220, 13%, 91%);
+  --sidebar-ring: hsl(217.2, 32.6%, 17.5%);
 }
 
 .dark {
