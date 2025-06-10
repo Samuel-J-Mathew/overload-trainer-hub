@@ -31,9 +31,8 @@ import { useFirestore } from "@/hooks/useFirestore";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Users, X } from "lucide-react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 
 const addClientSchema = z.object({
   name: z.string().min(1, "Client name is required"),
@@ -76,6 +75,30 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
     },
   });
 
+  // Function to create Firebase Auth user via REST API without affecting current auth state
+  const createFirebaseUser = async (email: string, password: string) => {
+    const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+    const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        returnSecureToken: true
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error?.message || 'Failed to create user');
+    }
+    
+    return result;
+  };
+
   const onSubmit = async (data: AddClientFormData) => {
     if (!user) {
       toast({
@@ -89,14 +112,10 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
     setIsSubmitting(true);
     
     try {
-      // Step 1: Create Firebase Auth user for the client
-      const clientAuthResult = await createUserWithEmailAndPassword(
-        auth, 
-        data.email, 
-        "password" // Default password
-      );
+      // Step 1: Create Firebase Auth user for the client using REST API (doesn't affect current auth state)
+      const clientAuthResult = await createFirebaseUser(data.email, "password");
+      const clientUID = clientAuthResult.localId;
       
-      const clientUID = clientAuthResult.user.uid;
       const [firstName, ...lastNameParts] = data.name.split(" ");
       const lastName = lastNameParts.join(" ");
 
@@ -148,11 +167,21 @@ export const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
       
     } catch (error: any) {
       console.error("Error creating client:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create client. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Handle duplicate email error specifically
+      if (error.message?.includes("EMAIL_EXISTS")) {
+        toast({
+          title: "Email Already Exists",
+          description: "A user with this email already exists. Please use a different email address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create client. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
