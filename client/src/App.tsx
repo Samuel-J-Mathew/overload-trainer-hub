@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import Forms from "@/pages/Forms";
+import Nutrition from "@/pages/Nutrition";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -31,6 +32,7 @@ function AuthenticatedApp() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/forms" component={Forms} />
+      <Route path="/nutrition" component={Nutrition} />
       <Route component={NotFound} />
     </Switch>
   );
