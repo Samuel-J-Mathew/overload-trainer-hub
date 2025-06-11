@@ -19,18 +19,19 @@ import { signOut } from "@/lib/auth";
 import { Link, useLocation } from "wouter";
 
 const navigation = [
-  { name: "Clients", icon: Users, href: "#", current: true },
-  { name: "Check Ins", icon: ClipboardCheck, href: "#", current: false },
-  { name: "Tasks", icon: CheckSquare, href: "#", current: false },
-  { name: "Messages", icon: MessageSquare, href: "#", current: false },
-  { name: "Packages", icon: Package, href: "#", current: false },
-  { name: "Nutrition", icon: Apple, href: "#", current: false },
-  { name: "Forms", icon: FileText, href: "#", current: false },
-  { name: "Metrics", icon: BarChart3, href: "#", current: false },
+  { name: "Clients", icon: Users, href: "/" },
+  { name: "Check Ins", icon: ClipboardCheck, href: "#" },
+  { name: "Tasks", icon: CheckSquare, href: "#" },
+  { name: "Messages", icon: MessageSquare, href: "#" },
+  { name: "Packages", icon: Package, href: "#" },
+  { name: "Nutrition", icon: Apple, href: "#" },
+  { name: "Forms", icon: FileText, href: "/forms" },
+  { name: "Metrics", icon: BarChart3, href: "#" },
 ];
 
 export const Sidebar = () => {
   const { user } = useAuth();
+  const [location] = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -52,15 +53,33 @@ export const Sidebar = () => {
       <nav className="flex-1 p-4 space-y-1">
         {navigation.map((item) => {
           const Icon = item.icon;
+          const isActive = location === item.href;
+          const isClickable = item.href !== "#";
+          
+          if (isClickable) {
+            return (
+              <Link key={item.name} href={item.href}>
+                <Button
+                  variant={isActive ? "default" : "ghost"}
+                  className={`w-full justify-start ${
+                    isActive 
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.name}
+                </Button>
+              </Link>
+            );
+          }
+          
           return (
             <Button
               key={item.name}
-              variant={item.current ? "default" : "ghost"}
-              className={`w-full justify-start ${
-                item.current 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              variant="ghost"
+              className="w-full justify-start text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              disabled
             >
               <Icon className="w-5 h-5 mr-3" />
               {item.name}
