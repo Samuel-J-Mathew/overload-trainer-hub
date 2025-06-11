@@ -238,7 +238,7 @@ export const QuestionnairesTab = () => {
       <TemplatesModal
         open={showTemplates}
         onOpenChange={setShowTemplates}
-        onTemplateSelect={(template) => {
+        onTemplateSelect={(template: any) => {
           // Template creation will be handled in the modal
           setShowTemplates(false);
         }}
