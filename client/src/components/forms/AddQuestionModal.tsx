@@ -128,7 +128,7 @@ export const AddQuestionModal = ({ open, onOpenChange, onAddQuestion }: AddQuest
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl" aria-describedby="add-question-description">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center space-x-2">
@@ -146,7 +146,7 @@ export const AddQuestionModal = ({ open, onOpenChange, onAddQuestion }: AddQuest
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div id="add-question-description" className="space-y-6">
           {/* Question Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

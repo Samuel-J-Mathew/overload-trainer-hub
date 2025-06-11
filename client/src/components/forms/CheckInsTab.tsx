@@ -167,50 +167,59 @@ export const CheckInsTab = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {checkIns.map((checkIn) => (
-          <Card 
-            key={checkIn.id}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setSelectedCheckIn(checkIn)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">
-                    {checkIn.formName}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {checkIn.questions.length} questions
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-xs text-gray-400">
-                Created {checkIn.createdAt.toLocaleDateString()}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {checkIns.length === 0 && !showNameInput && (
+{loading ? (
         <div className="text-center py-12">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No check-ins yet</h3>
-          <p className="text-gray-500 mb-4">Create your first check-in form to get started</p>
-          <Button 
-            onClick={() => setShowNameInput(true)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Check-In
-          </Button>
+          <Loader2 className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-500">Loading check-ins...</p>
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {checkIns.map((checkIn) => (
+              <Card 
+                key={checkIn.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedCheckIn(checkIn)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {checkIn.formName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        0 questions
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xs text-gray-400">
+                    Created {checkIn.createdAt?.toDate ? checkIn.createdAt.toDate().toLocaleDateString() : 'Recently'}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {checkIns.length === 0 && !showNameInput && (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No check-ins yet</h3>
+              <p className="text-gray-500 mb-4">Create your first check-in form to get started</p>
+              <Button 
+                onClick={() => setShowNameInput(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Check-In
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
