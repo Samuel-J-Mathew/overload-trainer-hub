@@ -37,7 +37,7 @@ export const AddMealModal = ({ open, onOpenChange, planId, clientId, planType }:
 
     setCreating(true);
     try {
-      const mealsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'plans', planId, 'meals');
+      const mealsRef = collection(db, 'coaches', user.uid, 'nutritionPlans', planId, 'meals');
       
       const mealData: any = {
         name: mealName.trim(),

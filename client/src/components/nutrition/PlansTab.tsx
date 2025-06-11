@@ -34,7 +34,7 @@ export const PlansTab = () => {
     if (!user?.uid) return;
 
     const clientId = selectedClientId || defaultClientId;
-    const plansRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'plans');
+    const plansRef = collection(db, 'coaches', user.uid, 'nutritionPlans');
     
     const unsubscribe = onSnapshot(plansRef, async (snapshot) => {
       const loadedPlans: Plan[] = [];
@@ -45,7 +45,7 @@ export const PlansTab = () => {
         // Count meals for meal-based plans
         let mealCount = 0;
         if (data.type === 'mealPlan' || data.type === 'macrosByMeal') {
-          const mealsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'plans', docSnapshot.id, 'meals');
+          const mealsRef = collection(db, 'coaches', user.uid, 'nutritionPlans', docSnapshot.id, 'meals');
           const mealsSnapshot = await getDocs(mealsRef);
           mealCount = mealsSnapshot.size;
         }

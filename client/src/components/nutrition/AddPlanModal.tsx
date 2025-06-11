@@ -51,7 +51,7 @@ export const AddPlanModal = ({ open, onOpenChange, clientId }: AddPlanModalProps
 
     setCreating(true);
     try {
-      const plansRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'plans');
+      const plansRef = collection(db, 'coaches', user.uid, 'nutritionPlans');
       await addDoc(plansRef, {
         name: planName.trim(),
         description: planDescription.trim(),

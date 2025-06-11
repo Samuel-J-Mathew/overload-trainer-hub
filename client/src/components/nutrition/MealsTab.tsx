@@ -31,7 +31,7 @@ export const MealsTab = () => {
     if (!user?.uid) return;
 
     const clientId = selectedClientId || defaultClientId;
-    const mealsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'meals');
+    const mealsRef = collection(db, 'coaches', user.uid, 'nutritionMeals');
     
     const unsubscribe = onSnapshot(mealsRef, (snapshot) => {
       const loadedMeals: Meal[] = [];

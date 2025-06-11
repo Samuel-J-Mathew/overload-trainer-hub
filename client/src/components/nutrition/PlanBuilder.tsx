@@ -61,7 +61,7 @@ export const PlanBuilder = ({ plan, onBack, onUpdate }: PlanBuilderProps) => {
 
     if (plan.type === 'mealPlan' || plan.type === 'macrosByMeal') {
       // Load meals
-      const mealsRef = collection(db, 'coaches', user.uid, 'clients', plan.clientId, 'nutrition', 'plans', plan.id, 'meals');
+      const mealsRef = collection(db, 'coaches', user.uid, 'nutritionPlans', plan.id, 'meals');
       const unsubscribe = onSnapshot(mealsRef, (snapshot) => {
         const loadedMeals: Meal[] = [];
         
@@ -86,7 +86,7 @@ export const PlanBuilder = ({ plan, onBack, onUpdate }: PlanBuilderProps) => {
       return () => unsubscribe();
     } else if (plan.type === 'totalMacros') {
       // Load total macros from plan document
-      const planRef = doc(db, 'coaches', user.uid, 'clients', plan.clientId, 'nutrition', 'plans', plan.id);
+      const planRef = doc(db, 'coaches', user.uid, 'nutritionPlans', plan.id);
       const unsubscribe = onSnapshot(planRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
@@ -107,7 +107,7 @@ export const PlanBuilder = ({ plan, onBack, onUpdate }: PlanBuilderProps) => {
     if (!user?.uid || !plan.clientId) return;
 
     try {
-      const planRef = doc(db, 'coaches', user.uid, 'clients', plan.clientId, 'nutrition', 'plans', plan.id);
+      const planRef = doc(db, 'coaches', user.uid, 'nutritionPlans', plan.id);
       await updateDoc(planRef, {
         name: planName,
         description: planDescription

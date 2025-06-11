@@ -45,7 +45,7 @@ export const AddMacrosModal = ({ open, onOpenChange, planId, clientId, currentMa
 
     setSaving(true);
     try {
-      const planRef = doc(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'plans', planId);
+      const planRef = doc(db, 'coaches', user.uid, 'nutritionPlans', planId);
       await updateDoc(planRef, {
         macros: {
           calories: calories ? parseInt(calories) : 0,
