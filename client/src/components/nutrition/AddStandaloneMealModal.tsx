@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useAuth } from "@/hooks/useAuth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -18,7 +18,7 @@ interface AddStandaloneMealModalProps {
 
 export const AddStandaloneMealModal = ({ open, onOpenChange, clientId }: AddStandaloneMealModalProps) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("create");
+
   const [creating, setCreating] = useState(false);
 
   // Form states
@@ -71,61 +71,41 @@ export const AddStandaloneMealModal = ({ open, onOpenChange, clientId }: AddStan
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="hubfit">HubFit Recipes</TabsTrigger>
-            <TabsTrigger value="ai">Meal AI</TabsTrigger>
-            <TabsTrigger value="create" className="bg-primary text-white">Create New</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="hubfit" className="mt-6">
-            <div className="text-center py-8 text-gray-500">
-              HubFit recipes integration coming soon
+        <div className="py-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mealName">Meal Name *</Label>
+              <Input
+                id="mealName"
+                placeholder="Name of the meal e.g. Breakfast"
+                value={mealName}
+                onChange={(e) => setMealName(e.target.value)}
+              />
             </div>
-          </TabsContent>
-          
-          <TabsContent value="ai" className="mt-6">
-            <div className="text-center py-8 text-gray-500">
-              AI meal generation coming soon
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="create" className="mt-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="mealName">Meal Name *</Label>
-                <Input
-                  id="mealName"
-                  placeholder="Name of the meal e.g. Breakfast"
-                  value={mealName}
-                  onChange={(e) => setMealName(e.target.value)}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="mealDescription">Meal Description</Label>
-                <Textarea
-                  id="mealDescription"
-                  placeholder="Enter any additional info"
-                  value={mealDescription}
-                  onChange={(e) => setMealDescription(e.target.value)}
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mealInstructions">Meal Instructions</Label>
-                <Textarea
-                  id="mealInstructions"
-                  placeholder="Enter any additional info"
-                  value={mealInstructions}
-                  onChange={(e) => setMealInstructions(e.target.value)}
-                  rows={4}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="mealDescription">Meal Description</Label>
+              <Textarea
+                id="mealDescription"
+                placeholder="Enter any additional info"
+                value={mealDescription}
+                onChange={(e) => setMealDescription(e.target.value)}
+                rows={3}
+              />
             </div>
-          </TabsContent>
-        </Tabs>
+
+            <div className="space-y-2">
+              <Label htmlFor="mealInstructions">Meal Instructions</Label>
+              <Textarea
+                id="mealInstructions"
+                placeholder="Enter any additional info"
+                value={mealInstructions}
+                onChange={(e) => setMealInstructions(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="flex justify-between pt-4">
           <Button 

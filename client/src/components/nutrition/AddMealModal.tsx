@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useAuth } from "@/hooks/useAuth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -20,7 +20,7 @@ interface AddMealModalProps {
 
 export const AddMealModal = ({ open, onOpenChange, planId, clientId, planType }: AddMealModalProps) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("create");
+
   const [creating, setCreating] = useState(false);
 
   // Form states
@@ -197,29 +197,9 @@ export const AddMealModal = ({ open, onOpenChange, planId, clientId, planType }:
         </DialogHeader>
 
         {planType === 'mealPlan' && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="hubfit">HubFit Recipes</TabsTrigger>
-              <TabsTrigger value="ai">Meal AI</TabsTrigger>
-              <TabsTrigger value="create" className="bg-primary text-white">Create New</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="hubfit" className="mt-6">
-              <div className="text-center py-8 text-gray-500">
-                HubFit recipes integration coming soon
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="ai" className="mt-6">
-              <div className="text-center py-8 text-gray-500">
-                AI meal generation coming soon
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="create" className="mt-6">
-              {renderMealPlanForm()}
-            </TabsContent>
-          </Tabs>
+          <div className="py-4">
+            {renderMealPlanForm()}
+          </div>
         )}
 
         {planType === 'macrosByMeal' && (
