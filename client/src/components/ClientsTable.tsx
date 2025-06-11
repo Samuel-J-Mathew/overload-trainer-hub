@@ -26,16 +26,8 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
   };
 
   const getAvatarColor = (name?: string) => {
-    const colors = [
-      'bg-orange-500',
-      'bg-pink-500', 
-      'bg-blue-500',
-      'bg-green-500',
-      'bg-purple-500',
-      'bg-yellow-500'
-    ];
-    const index = (name?.length || 0) % colors.length;
-    return colors[index];
+    // Use black background for all avatars to match the theme
+    return 'bg-black';
   };
 
   const formatDate = (date?: any) => {
