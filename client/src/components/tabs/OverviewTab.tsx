@@ -136,6 +136,8 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
               const exercisesRef = collection(db, `users/${userId}/workouts/${dateStr}/exercises`);
               const exerciseSnapshot = await getDocs(exercisesRef);
               
+              console.log(`Exercises found for ${dateStr}:`, exerciseSnapshot.size);
+              
               if (!exerciseSnapshot.empty) {
                 activities.push({
                   date,
@@ -144,6 +146,18 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
                   icon: '🏋️'
                 });
                 console.log("Added workout activity for", dateStr, "with", exerciseSnapshot.size, "exercises");
+              } else {
+                // Even if no exercises, check if there's workout data
+                const workoutData = workoutDoc.data();
+                if (Object.keys(workoutData).length > 0) {
+                  activities.push({
+                    date,
+                    type: 'workout',
+                    description: `Completed workout session`,
+                    icon: '🏋️'
+                  });
+                  console.log("Added workout activity for", dateStr, "based on workout document");
+                }
               }
             }
           }
@@ -245,8 +259,8 @@ export const OverviewTab = ({ client }: OverviewTabProps) => {
       {
         label: 'Weight (lbs)',
         data: weightData.slice(-14).map(entry => entry.weight),
-        borderColor: 'rgb(99, 102, 241)',
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderColor: 'rgb(23, 23, 23)',
+        backgroundColor: 'rgba(23, 23, 23, 0.1)',
         tension: 0.1,
         fill: false
       }

@@ -109,8 +109,8 @@ export const MetricsTab = ({ clientId }: MetricsTabProps) => {
       {
         label: 'Weight (lbs)',
         data: filteredData.map(entry => entry.weight),
-        borderColor: 'rgb(99, 102, 241)',
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderColor: 'rgb(23, 23, 23)',
+        backgroundColor: 'rgba(23, 23, 23, 0.1)',
         tension: 0.1,
         fill: false
       }
