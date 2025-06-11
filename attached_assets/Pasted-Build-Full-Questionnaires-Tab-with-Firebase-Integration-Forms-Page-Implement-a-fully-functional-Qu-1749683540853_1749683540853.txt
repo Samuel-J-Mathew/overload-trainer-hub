@@ -1,0 +1,95 @@
+Build Full Questionnaires Tab with Firebase Integration (Forms Page)
+Implement a fully functional Questionnaires tab on the Forms Page of the Overload web app. This section should be very similar to the Check-Ins tab, but with added template functionality and Firebase saving.
+
+🧩 UI Structure
+✅ Two Tabs:
+
+Check-Ins (already implemented)
+
+Questionnaires (implement now)
+
+📄 Questionnaires Tab Features
+➕ Add Questionnaire Button
+Clicking opens a prompt to input a form name
+
+After saving, it creates a card for the questionnaire
+
+Clicking the card opens a Questionnaire Builder View
+
+🧱 Questionnaire Builder View
+Show title at top
+
+“Add Question” button opens a modal
+
+Fields:
+
+Question Text
+
+Response Type (dropdown: text, number, yesNo, scale, starRating, progressPhotos)
+
+Required (checkbox)
+
+Saved questions display below in a list
+
+🧰 Template System
+Add a “Templates” button beside the “Add Questionnaire” button
+
+Opens a black-themed modal
+
+Display 3 predefined questionnaire templates with descriptions:
+
+Templates:
+Initial Assessment
+
+A comprehensive form to understand your client's goals, training habits, and availability.
+
+PAR-Q: Health + Readiness
+
+A physical readiness questionnaire to assess health risks before training.
+
+Feedback Survey
+
+A post-coaching form to collect feedback on progress and coaching quality.
+
+✅ Each has a “Use Template” button
+✅ When clicked, auto-generate the questionnaire and questions into Firestore
+
+🔥 Firebase Structure
+Save all questionnaire forms and questions under the coach’s collection:
+
+✅ Path:
+bash
+Copy
+Edit
+/coaches/{coachUID}/forms/questionnaires/{questionnaireID}
+Questionnaire Document:
+js
+Copy
+Edit
+{
+  formName: "Feedback Survey",
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+}
+Questions Subcollection:
+bash
+Copy
+Edit
+/coaches/{coachUID}/forms/questionnaires/{questionnaireID}/questions/{questionID}
+Each question:
+
+js
+Copy
+Edit
+{
+  questionText: "How many days can you commit to training?",
+  responseType: "number", // or "text", "yesNo", "scale", etc.
+  required: true,
+  order: 1,
+  createdAt: serverTimestamp()
+}
+✅ Use Firebase SDK v9+ (setDoc, addDoc, collection, doc)
+✅ Use Tailwind CSS
+✅ All modals and UI should match the Overload aesthetic, with the Templates modal in a black/dark theme
+✅ Store all forms under the correct coach UID dynamically
+✅ Support optimistic UI updates after saving to Firestore

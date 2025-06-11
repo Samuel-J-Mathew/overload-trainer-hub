@@ -40,7 +40,7 @@ export const QuestionnairesTab = () => {
   useEffect(() => {
     if (!user?.uid) return;
 
-    const questionnairesRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires');
+    const questionnairesRef = collection(db, 'coaches', user.uid, 'questionnaires');
     const unsubscribe = onSnapshot(questionnairesRef, (snapshot) => {
       const loadedQuestionnaires: Questionnaire[] = [];
       
@@ -67,7 +67,7 @@ export const QuestionnairesTab = () => {
     
     setCreating(true);
     try {
-      const questionnairesRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires');
+      const questionnairesRef = collection(db, 'coaches', user.uid, 'questionnaires');
       await addDoc(questionnairesRef, {
         formName: newQuestionnaireName.trim(),
         createdAt: serverTimestamp(),

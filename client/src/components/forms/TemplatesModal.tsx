@@ -96,7 +96,7 @@ export const TemplatesModal = ({ open, onOpenChange, onTemplateSelect }: Templat
     setCreating(template.id);
     try {
       // Create the questionnaire document
-      const questionnairesRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires');
+      const questionnairesRef = collection(db, 'coaches', user.uid, 'questionnaires');
       const questionnaireDoc = await addDoc(questionnairesRef, {
         formName: template.name,
         createdAt: serverTimestamp(),
@@ -104,7 +104,7 @@ export const TemplatesModal = ({ open, onOpenChange, onTemplateSelect }: Templat
       });
 
       // Add all questions from the template
-      const questionsRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires', questionnaireDoc.id, 'questions');
+      const questionsRef = collection(db, 'coaches', user.uid, 'questionnaires', questionnaireDoc.id, 'questions');
       
       for (let i = 0; i < template.questions.length; i++) {
         const question = template.questions[i];

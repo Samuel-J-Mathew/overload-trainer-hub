@@ -39,7 +39,7 @@ export const QuestionnaireBuilder = ({ questionnaire, onBack, onUpdate }: Questi
   useEffect(() => {
     if (!user?.uid || !questionnaire.id) return;
 
-    const questionsRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires', questionnaire.id, 'questions');
+    const questionsRef = collection(db, 'coaches', user.uid, 'questionnaires', questionnaire.id, 'questions');
     const unsubscribe = onSnapshot(questionsRef, (snapshot) => {
       const loadedQuestions: Question[] = [];
       
@@ -68,7 +68,7 @@ export const QuestionnaireBuilder = ({ questionnaire, onBack, onUpdate }: Questi
     if (!user?.uid || !questionnaire.id) return;
     
     try {
-      const questionsRef = collection(db, 'coaches', user.uid, 'forms', 'questionnaires', questionnaire.id, 'questions');
+      const questionsRef = collection(db, 'coaches', user.uid, 'questionnaires', questionnaire.id, 'questions');
       await addDoc(questionsRef, {
         ...newQuestion,
         order: questions.length,
@@ -76,7 +76,7 @@ export const QuestionnaireBuilder = ({ questionnaire, onBack, onUpdate }: Questi
       });
 
       // Update the questionnaire's updatedAt timestamp
-      const questionnaireRef = doc(db, 'coaches', user.uid, 'forms', 'questionnaires', questionnaire.id);
+      const questionnaireRef = doc(db, 'coaches', user.uid, 'questionnaires', questionnaire.id);
       await updateDoc(questionnaireRef, {
         updatedAt: serverTimestamp()
       });
