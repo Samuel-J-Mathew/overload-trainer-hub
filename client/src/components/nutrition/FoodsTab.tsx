@@ -45,7 +45,7 @@ export const FoodsTab = () => {
     
     if (activeTab === "library") {
       // Load from food library (foods created by coach)
-      const foodsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'foods');
+      const foodsRef = collection(db, 'coaches', user.uid, 'nutritionFoods');
       const foodsQuery = query(foodsRef, orderBy('timestamp', 'desc'));
       
       const unsubscribe = onSnapshot(foodsQuery, (snapshot) => {

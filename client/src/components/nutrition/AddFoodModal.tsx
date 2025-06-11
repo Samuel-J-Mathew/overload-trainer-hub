@@ -51,7 +51,7 @@ export const AddFoodModal = ({ open, onOpenChange, clientId }: AddFoodModalProps
 
     setCreating(true);
     try {
-      const foodsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'foods');
+      const foodsRef = collection(db, 'coaches', user.uid, 'nutritionFoods');
       await addDoc(foodsRef, {
         name: foodName.trim(),
         servingSize: parseFloat(servingSize) || 1,

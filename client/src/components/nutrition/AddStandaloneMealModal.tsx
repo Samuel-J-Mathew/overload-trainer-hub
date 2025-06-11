@@ -31,7 +31,7 @@ export const AddStandaloneMealModal = ({ open, onOpenChange, clientId }: AddStan
 
     setCreating(true);
     try {
-      const mealsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'nutrition', 'meals');
+      const mealsRef = collection(db, 'coaches', user.uid, 'nutritionMeals');
       await addDoc(mealsRef, {
         name: mealName.trim(),
         description: mealDescription.trim(),
