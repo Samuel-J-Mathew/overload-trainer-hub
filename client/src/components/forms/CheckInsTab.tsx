@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, FileText, Loader2 } from "lucide-react";
 import { CheckInBuilder } from "./CheckInBuilder";
 import { useAuth } from "@/hooks/useAuth";
-import { collection, doc, addDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, addDoc, onSnapshot, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface CheckIn {
@@ -14,6 +14,7 @@ interface CheckIn {
   createdAt: any;
   updatedAt: any;
   questions: Question[];
+  questionCount?: number;
 }
 
 interface Question {
@@ -39,19 +40,25 @@ export const CheckInsTab = () => {
     if (!user?.uid) return;
 
     const checkInsRef = collection(db, 'coaches', user.uid, 'checkins');
-    const unsubscribe = onSnapshot(checkInsRef, (snapshot) => {
+    const unsubscribe = onSnapshot(checkInsRef, async (snapshot) => {
       const loadedCheckIns: CheckIn[] = [];
       
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      for (const docSnapshot of snapshot.docs) {
+        const data = docSnapshot.data();
+        
+        // Count questions for each check-in
+        const questionsRef = collection(db, 'coaches', user.uid, 'checkins', docSnapshot.id, 'questions');
+        const questionsSnapshot = await getDocs(questionsRef);
+        
         loadedCheckIns.push({
-          id: doc.id,
+          id: docSnapshot.id,
           formName: data.formName,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
-          questions: []
+          questions: [],
+          questionCount: questionsSnapshot.size
         });
-      });
+      }
       
       setCheckIns(loadedCheckIns);
       setLoading(false);
@@ -191,7 +198,7 @@ export const CheckInsTab = () => {
                         {checkIn.formName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        0 questions
+                        {checkIn.questionCount || 0} questions
                       </p>
                     </div>
                   </div>

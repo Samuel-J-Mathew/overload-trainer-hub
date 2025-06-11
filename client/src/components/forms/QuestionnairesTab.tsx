@@ -6,7 +6,7 @@ import { Plus, FileText, Loader2, Sparkles } from "lucide-react";
 import { QuestionnaireBuilder } from "./QuestionnaireBuilder";
 import { TemplatesModal } from "./TemplatesModal";
 import { useAuth } from "@/hooks/useAuth";
-import { collection, addDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Questionnaire {
@@ -15,6 +15,7 @@ interface Questionnaire {
   createdAt: any;
   updatedAt: any;
   questions: Question[];
+  questionCount?: number;
 }
 
 interface Question {
@@ -41,19 +42,25 @@ export const QuestionnairesTab = () => {
     if (!user?.uid) return;
 
     const questionnairesRef = collection(db, 'coaches', user.uid, 'questionnaires');
-    const unsubscribe = onSnapshot(questionnairesRef, (snapshot) => {
+    const unsubscribe = onSnapshot(questionnairesRef, async (snapshot) => {
       const loadedQuestionnaires: Questionnaire[] = [];
       
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      for (const docSnapshot of snapshot.docs) {
+        const data = docSnapshot.data();
+        
+        // Count questions for each questionnaire
+        const questionsRef = collection(db, 'coaches', user.uid, 'questionnaires', docSnapshot.id, 'questions');
+        const questionsSnapshot = await getDocs(questionsRef);
+        
         loadedQuestionnaires.push({
-          id: doc.id,
+          id: docSnapshot.id,
           formName: data.formName,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
-          questions: []
+          questions: [],
+          questionCount: questionsSnapshot.size
         });
-      });
+      }
       
       setQuestionnaires(loadedQuestionnaires);
       setLoading(false);
@@ -194,7 +201,7 @@ export const QuestionnairesTab = () => {
                         {questionnaire.formName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        0 questions
+                        {questionnaire.questionCount || 0} questions
                       </p>
                     </div>
                   </div>
