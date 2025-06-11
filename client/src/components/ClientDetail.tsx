@@ -19,7 +19,7 @@ interface ClientDetailProps {
 
 export const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   const getInitials = (name?: string) => {
     if (!name) return "?";
