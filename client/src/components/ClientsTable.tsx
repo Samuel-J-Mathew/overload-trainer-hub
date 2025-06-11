@@ -26,8 +26,8 @@ export const ClientsTable = ({ clients, onClientSelect }: ClientsTableProps) => 
   };
 
   const getAvatarColor = (name?: string) => {
-    // Use black background for all avatars to match the theme
-    return 'bg-black';
+    // Use dark gray background for all avatars to match the lighter theme
+    return 'bg-gray-800';
   };
 
   const formatDate = (date?: any) => {
