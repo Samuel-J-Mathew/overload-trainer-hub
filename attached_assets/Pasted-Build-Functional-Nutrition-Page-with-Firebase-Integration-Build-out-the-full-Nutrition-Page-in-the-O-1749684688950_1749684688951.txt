@@ -1,0 +1,169 @@
+Build Functional Nutrition Page with Firebase Integration
+Build out the full Nutrition Page in the Overload fitness coaching app with three interactive tabs and connected Firebase saving under each coach’s client.
+
+🗂 Tabs to Include:
+Plans
+
+Meals
+
+Foods
+
+Use Tailwind CSS for styling and React component structure.
+
+🔹 1. PLANS TAB
+➕ “Add Plan” Button:
+When clicked, show a form that asks for:
+
+Plan Name (string)
+
+Plan Description (multiline text)
+
+Plan Type (dropdown):
+
+Meal Plan
+
+Total Macros
+
+Macros by Meal
+
+📋 Conditional Plan Type Forms:
+🔸 Meal Plan
+Allows the user to add multiple meals to the plan
+
+Each meal includes:
+
+Meal Name
+
+Description
+
+Meal Instructions
+
+🔸 Total Macros
+Allows user to enter overall daily targets:
+
+Calories, Protein, Carbs, Fats
+
+🔸 Macros by Meal
+Allows user to add multiple meals, each with:
+
+Meal Name
+
+Notes
+
+Protein, Carbs, Fats
+
+🔥 Firebase Storage Path:
+Each plan should be saved to:
+
+bash
+Copy
+Edit
+/coaches/{coachUID}/clients/{clientUID}/nutrition/plans/{planID}
+Example:
+
+bash
+Copy
+Edit
+/coaches/vy3MkwK49aUn1rugLhFJoPY4rR82/clients/5OhDAb13Yxa6nyI0qcUjjMjQvCu1/nutrition/plans/
+Plan Document Structure:
+
+js
+Copy
+Edit
+{
+  name: "Lean Bulk Plan",
+  description: "Designed to build mass while staying lean.",
+  type: "macrosByMeal" || "totalMacros" || "mealPlan",
+  createdAt: serverTimestamp()
+}
+Subfields or arrays based on type:
+
+For totalMacros:
+
+js
+Copy
+Edit
+{
+  calories: 2400,
+  protein: 180,
+  carbs: 250,
+  fats: 70
+}
+For macrosByMeal:
+
+js
+Copy
+Edit
+meals: [
+  {
+    name: "Lunch",
+    notes: "High-carb, post-workout meal",
+    protein: 40,
+    carbs: 60,
+    fats: 15
+  },
+  ...
+]
+For mealPlan:
+
+js
+Copy
+Edit
+meals: [
+  {
+    name: "Breakfast",
+    description: "Oats and eggs",
+    instructions: "Cook oats, scramble eggs..."
+  },
+  ...
+]
+🔹 2. MEALS TAB
+(Structure it for standalone saved meals — not part of a plan)
+
+Allow coaches to create, edit, and view standalone meals.
+
+Each meal includes:
+
+Meal Name
+
+Description
+
+Instructions
+
+Firebase Path:
+
+bash
+Copy
+Edit
+/coaches/{coachUID}/clients/{clientUID}/nutrition/meals/{mealID}
+🔹 3. FOODS TAB
+Create a searchable list of foods the client has logged (if pulling from app data).
+
+Pull from:
+
+bash
+Copy
+Edit
+/users/{clientUID}/foods/{date}/entries/
+List each entry with:
+
+Name
+
+Calories, Protein, Carbs, Fats
+
+Timestamp
+
+(Optional) add filters by date or macros
+
+🔧 Firebase SDK Notes:
+Use setDoc, addDoc, collection, doc, serverTimestamp from Firebase Modular v9
+
+Save under the full path:
+/coaches/{coachUID}/clients/{clientUID}/nutrition/...
+
+Use uuid or auto-generated IDs for new plans/meals/entries
+
+✅ Make all UI reactive
+✅ Use modals for adding meals or questions
+✅ Automatically update lists after new entries are saved
+✅ Match the dark theme/white contrast of the Overload UI
