@@ -1,0 +1,96 @@
+Build Questionnaires Tab (Forms Page) with Templates + Theming
+Implement the Questionnaires tab on the Forms Page for the Overload coaching dashboard. This should be very similar in structure and behavior to the Check-Ins tab, with some key additions:
+
+🧩 UI Structure
+✅ Two Tabs on Forms Page:
+
+Check-Ins (already built)
+
+Questionnaires (implement now)
+
+📄 Questionnaires Tab Functionality
+➕ “Add Questionnaire” Button
+Clicking this opens a form to:
+
+Input the Questionnaire name
+
+After saving, a card appears showing the name
+
+Clicking the card opens a blank Questionnaire Builder page
+
+🧱 Questionnaire Builder View
+Shows title of the questionnaire at the top
+
+Has a button: "Add Question"
+
+Clicking this opens a modal popup
+
+Inputs:
+
+Question Text
+
+Type (dropdown: Text, Number, Yes/No, Scale, Star Rating, Progress Photos)
+
+Required (checkbox)
+
+Saved questions appear in a list underneath
+
+🧰 Template System (next to "Add Questionnaire")
+Add a “Template” button beside “Add Questionnaire”
+
+Clicking it opens a black-themed modal popup
+
+Inside the modal, show 3 prebuilt questionnaire templates:
+
+1. Initial Assessment
+A comprehensive form to understand your client's goals, habits, and preferences before coaching begins.
+
+2. Health + Readiness Survey (PAR-Q)
+A physical readiness questionnaire for identifying risks and screening medical concerns before starting a training program.
+
+3. Feedback Survey
+A form to gather client feedback on coaching progress, satisfaction, and improvement areas.
+
+✅ Each template should display a brief description and a “Use Template” button
+✅ When clicked, it should auto-create a questionnaire with all the corresponding questions
+
+🗃️ Firebase Structure (same as Check-Ins, under coaches)
+Save questionnaires under:
+
+bash
+Copy
+Edit
+/coaches/{coachUID}/forms/questionnaires/{questionnaireID}
+Each questionnaire:
+
+js
+Copy
+Edit
+{
+  formName: "Feedback Survey",
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+}
+With nested subcollection:
+
+bash
+Copy
+Edit
+/coaches/{coachUID}/forms/questionnaires/{questionnaireID}/questions/{questionID}
+Each question:
+
+js
+Copy
+Edit
+{
+  questionText: "What are your fitness goals?",
+  responseType: "text", // or number, yesNo, scale, star, progressPhoto
+  required: true,
+  order: 1
+}
+✅ Use Tailwind CSS
+✅ The questionnaire templates modal must use a different theme — black background with clean white text for visual contrast
+✅ Use modular components (e.g. QuestionnaireBuilder.jsx, AddQuestionModal.jsx, TemplateSelectorModal.jsx)
+✅ Ensure newly added forms and templates display in the main questionnaire list
+
+Let me know if you want to support editing, reordering, or deleting questions too.

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckInsTab } from "@/components/forms/CheckInsTab";
+import { QuestionnairesTab } from "@/components/forms/QuestionnairesTab";
 
 export default function Forms() {
   const [activeTab, setActiveTab] = useState("checkins");
@@ -24,10 +25,7 @@ export default function Forms() {
           </TabsContent>
 
           <TabsContent value="questionnaires" className="space-y-4">
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Questionnaires</h3>
-              <p className="text-gray-500">Coming soon...</p>
-            </div>
+            <QuestionnairesTab />
           </TabsContent>
         </Tabs>
       </div>
