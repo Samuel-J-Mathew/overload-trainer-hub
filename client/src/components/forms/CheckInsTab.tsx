@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Loader2 } from "lucide-react";
 import { CheckInBuilder } from "./CheckInBuilder";
+import { useAuth } from "@/hooks/useAuth";
+import { collection, doc, addDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface CheckIn {
   id: string;
   formName: string;
-  createdAt: Date;
+  createdAt: any;
+  updatedAt: any;
   questions: Question[];
 }
 
@@ -18,25 +22,71 @@ interface Question {
   responseType: string;
   required: boolean;
   order: number;
+  createdAt: any;
 }
 
 export const CheckInsTab = () => {
+  const { user } = useAuth();
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [showNameInput, setShowNameInput] = useState(false);
   const [newCheckInName, setNewCheckInName] = useState("");
   const [selectedCheckIn, setSelectedCheckIn] = useState<CheckIn | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
-  const handleCreateCheckIn = () => {
-    if (newCheckInName.trim()) {
+  // Load check-ins from Firebase
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const checkInsRef = collection(db, 'coaches', user.uid, 'checkins');
+    const unsubscribe = onSnapshot(checkInsRef, (snapshot) => {
+      const loadedCheckIns: CheckIn[] = [];
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        loadedCheckIns.push({
+          id: doc.id,
+          formName: data.formName,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          questions: []
+        });
+      });
+      
+      setCheckIns(loadedCheckIns);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  const handleCreateCheckIn = async () => {
+    if (!newCheckInName.trim() || !user?.uid) return;
+    
+    setCreating(true);
+    try {
+      const checkInsRef = collection(db, 'coaches', user.uid, 'checkins');
+      const docRef = await addDoc(checkInsRef, {
+        formName: newCheckInName.trim(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Optimistic update
       const newCheckIn: CheckIn = {
-        id: Date.now().toString(),
+        id: docRef.id,
         formName: newCheckInName.trim(),
         createdAt: new Date(),
+        updatedAt: new Date(),
         questions: []
       };
-      setCheckIns([...checkIns, newCheckIn]);
+      
       setNewCheckInName("");
       setShowNameInput(false);
+    } catch (error) {
+      console.error('Error creating check-in:', error);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -90,10 +140,17 @@ export const CheckInsTab = () => {
               />
               <Button 
                 onClick={handleCreateCheckIn}
-                disabled={!newCheckInName.trim()}
+                disabled={!newCheckInName.trim() || creating}
                 size="sm"
               >
-                Create
+                {creating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create"
+                )}
               </Button>
               <Button 
                 variant="outline"
