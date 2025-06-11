@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/auth";
+import { Link, useLocation } from "wouter";
 
 const navigation = [
   { name: "Clients", icon: Users, href: "#", current: true },
