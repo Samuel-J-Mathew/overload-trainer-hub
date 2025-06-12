@@ -12,10 +12,9 @@ import { ChefHat, Target, Utensils, Loader2 } from "lucide-react";
 interface AddPlanModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clientId: string;
 }
 
-export const AddPlanModal = ({ open, onOpenChange, clientId }: AddPlanModalProps) => {
+export const AddPlanModal = ({ open, onOpenChange }: AddPlanModalProps) => {
   const { user } = useAuth();
   const [planName, setPlanName] = useState("");
   const [planDescription, setPlanDescription] = useState("");

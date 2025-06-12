@@ -13,10 +13,9 @@ import { Apple, Loader2 } from "lucide-react";
 interface AddFoodModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clientId: string;
 }
 
-export const AddFoodModal = ({ open, onOpenChange, clientId }: AddFoodModalProps) => {
+export const AddFoodModal = ({ open, onOpenChange }: AddFoodModalProps) => {
   const { user } = useAuth();
   const [creating, setCreating] = useState(false);
 

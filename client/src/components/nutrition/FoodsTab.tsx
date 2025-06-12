@@ -31,11 +31,7 @@ export const FoodsTab = () => {
   const [showAddFoodModal, setShowAddFoodModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-
-  // For demo purposes, using a default client ID - in real app this would come from selected client
-  const defaultClientId = "demo-client-123";
 
   // Load foods from Firebase
   useEffect(() => {
@@ -216,7 +212,6 @@ export const FoodsTab = () => {
       <AddFoodModal
         open={showAddFoodModal}
         onOpenChange={setShowAddFoodModal}
-        clientId={selectedClientId || defaultClientId}
       />
     </div>
   );

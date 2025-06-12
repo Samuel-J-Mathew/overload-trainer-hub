@@ -24,16 +24,13 @@ export const PlansTab = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showAddPlanModal, setShowAddPlanModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-  // For demo purposes, using a default client ID - in real app this would come from selected client
-  const defaultClientId = "demo-client-123";
 
   // Load plans from Firebase
   useEffect(() => {
     if (!user?.uid) return;
 
-    const clientId = selectedClientId || defaultClientId;
+
     const plansRef = collection(db, 'coaches', user.uid, 'nutritionPlans');
     
     const unsubscribe = onSnapshot(plansRef, async (snapshot) => {
