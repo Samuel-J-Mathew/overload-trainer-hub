@@ -24,7 +24,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
   const [currency, setCurrency] = useState("USD");
   const [planType, setPlanType] = useState("");
   const [duration, setDuration] = useState("");
-  const [totalPrice, setTotalPrice] = useState("");
+  const [monthlyPrice, setMonthlyPrice] = useState("");
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,10 +43,10 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
     { value: "GBP", label: "GBP (£)" }
   ];
 
-  const calculatePayoutPerMonth = () => {
-    const price = parseFloat(totalPrice) || 0;
+  const calculateTotalPrice = () => {
+    const pricePerMonth = parseFloat(monthlyPrice) || 0;
     const months = parseInt(duration) || 1;
-    return price / months;
+    return pricePerMonth * months;
   };
 
   const resetForm = () => {
@@ -55,13 +55,13 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
     setCurrency("USD");
     setPlanType("");
     setDuration("");
-    setTotalPrice("");
+    setMonthlyPrice("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user?.uid || !packageName || !planType || !duration || !totalPrice) {
+    if (!user?.uid || !packageName || !planType || !duration || !monthlyPrice) {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -71,7 +71,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
     }
 
     const durationNum = parseInt(duration);
-    const priceNum = parseFloat(totalPrice);
+    const priceNum = parseFloat(monthlyPrice);
 
     if (durationNum <= 0) {
       toast({
@@ -102,8 +102,8 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
         currency,
         planType,
         duration: durationNum,
-        totalPrice: priceNum,
-        payoutPerMonth: calculatePayoutPerMonth(),
+        totalPrice: calculateTotalPrice(),
+        payoutPerMonth: priceNum,
         createdAt: serverTimestamp()
       });
 
@@ -263,8 +263,8 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
                 <Input
                   type="number"
                   placeholder="0"
-                  value={totalPrice}
-                  onChange={(e) => setTotalPrice(e.target.value)}
+                  value={monthlyPrice}
+                  onChange={(e) => setMonthlyPrice(e.target.value)}
                   className="pl-8"
                   min="0"
                   step="0.01"
@@ -283,7 +283,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
                 <span className="text-sm text-gray-600">Total payout for this package:</span>
                 <span className="text-lg font-semibold text-blue-600">
                   {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                  {calculatePayoutPerMonth().toFixed(2)}
+                  {calculateTotalPrice().toFixed(2)}
                 </span>
               </div>
             </div>
