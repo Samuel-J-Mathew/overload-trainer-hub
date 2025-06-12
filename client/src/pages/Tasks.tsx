@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { AddTaskModal } from "@/components/tasks/AddTaskModal";
 import { collection, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Plus, Search, Filter, Calendar, CheckCircle2 } from "lucide-react";
+import { Plus, Search, CheckCircle2, Filter } from "lucide-react";
 import { format } from "date-fns";
 
 interface Task {
@@ -98,129 +99,169 @@ export default function Tasks() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Tasks</h1>
-          <p className="text-gray-400">Manage your coaching tasks and deadlines</p>
-        </div>
-
-        {/* Search and Sort Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="latest">Sort by: Latest</SelectItem>
-                <SelectItem value="oldest">Sort by: Oldest</SelectItem>
-              </SelectContent>
-            </Select>
+    <Layout>
+      <div className="bg-white p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded border border-gray-300"></div>
+              <h1 className="text-xl font-semibold text-gray-900">Tasks</h1>
+            </div>
             
-            <Button
-              onClick={() => setShowAddTaskModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Task
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Help
+              </Button>
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600">A</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Tasks List */}
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <Card key={i} className="bg-gray-800 border-gray-700 animate-pulse">
-                <CardHeader>
-                  <div className="h-6 bg-gray-700 rounded w-2/3"></div>
-                  <div className="h-4 bg-gray-700 rounded w-1/3"></div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-12">
-            <CheckCircle2 className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
-              {searchQuery ? "No tasks found" : "No tasks yet"}
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery 
-                ? "Try adjusting your search terms" 
-                : "Get started by adding your first task"
-              }
-            </p>
-            {!searchQuery && (
+          {/* Search and Add Task */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search tasks"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 border-gray-200"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
+                <Filter className="h-4 w-4 mr-1" />
+                1 Filter
+              </Button>
+              
               <Button
                 onClick={() => setShowAddTaskModal(true)}
+                size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Task
+                <Plus className="h-4 w-4 mr-1" />
+                Add Task
               </Button>
-            )}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredTasks.map((task) => (
-              <Card key={task.id} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-white text-lg font-semibold">
-                        {task.name}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-2">
-                        <Calendar className="h-4 w-4" />
-                        <span className={`${
-                          isOverdue(task.dueDate) 
-                            ? "text-red-400" 
-                            : isDueToday(task.dueDate) 
-                            ? "text-yellow-400" 
-                            : "text-gray-400"
-                        }`}>
-                          Due: {formatDueDate(task.dueDate)}
-                          {isOverdue(task.dueDate) && " (Overdue)"}
-                          {isDueToday(task.dueDate) && " (Today)"}
-                        </span>
-                      </CardDescription>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {isOverdue(task.dueDate) && (
-                        <div className="w-3 h-3 bg-red-500 rounded-full" title="Overdue" />
-                      )}
-                      {isDueToday(task.dueDate) && (
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full" title="Due Today" />
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        )}
 
-        {/* Add Task Modal */}
-        <AddTaskModal
-          open={showAddTaskModal}
-          onOpenChange={setShowAddTaskModal}
-        />
+          {/* Tasks Table */}
+          <div className="bg-white border border-gray-200 rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-gray-200">
+                  <TableHead className="text-gray-600 font-medium w-16">
+                    <div className="w-4 h-4 rounded border border-gray-300"></div>
+                  </TableHead>
+                  <TableHead className="text-gray-600 font-medium">Task</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      Due Date
+                      <Filter className="h-3 w-3" />
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  [...Array(3)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded w-20 ml-auto animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <>
+                    {/* Upcoming Section */}
+                    {filteredTasks.length > 0 && (
+                      <>
+                        <TableRow>
+                          <TableCell colSpan={3} className="py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700">Upcoming</span>
+                              <span className="text-sm text-gray-500">{filteredTasks.length}</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {filteredTasks.map((task) => (
+                          <TableRow key={task.id} className="hover:bg-gray-50">
+                            <TableCell>
+                              <div className="w-4 h-4 rounded border border-gray-300"></div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-900">{task.name}</span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className={`text-sm ${
+                                isOverdue(task.dueDate) 
+                                  ? "text-red-600" 
+                                  : isDueToday(task.dueDate) 
+                                  ? "text-orange-600" 
+                                  : "text-gray-600"
+                              }`}>
+                                {isOverdue(task.dueDate) && "Due "}
+                                {formatDueDate(task.dueDate)}
+                                {isOverdue(task.dueDate) && " ago"}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* Empty State */}
+                    {filteredTasks.length === 0 && !loading && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-12">
+                          <div className="text-gray-500">
+                            {searchQuery ? "No tasks found" : "No tasks yet"}
+                          </div>
+                          {!searchQuery && (
+                            <Button
+                              onClick={() => setShowAddTaskModal(true)}
+                              variant="outline"
+                              size="sm"
+                              className="mt-2"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add First Task
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Add Task Modal */}
+          <AddTaskModal
+            open={showAddTaskModal}
+            onOpenChange={setShowAddTaskModal}
+          />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }
