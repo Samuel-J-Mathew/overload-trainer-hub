@@ -12,9 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AddTaskModal } from "@/components/tasks/AddTaskModal";
-import { collection, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, Timestamp, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Plus, Search, CheckCircle2, Filter } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
 interface Task {
@@ -22,6 +23,8 @@ interface Task {
   name: string;
   dueDate: Timestamp;
   createdAt: Timestamp;
+  completed: boolean;
+  completedAt?: Timestamp;
 }
 
 export default function Tasks() {
@@ -48,7 +51,9 @@ export default function Tasks() {
           id: doc.id,
           name: data.name,
           dueDate: data.dueDate,
-          createdAt: data.createdAt
+          createdAt: data.createdAt,
+          completed: data.completed || false,
+          completedAt: data.completedAt
         });
       });
       
@@ -65,8 +70,14 @@ export default function Tasks() {
       task.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Sort tasks
+    // Sort tasks - completed tasks go to bottom, then sort by due date
     filtered.sort((a, b) => {
+      // First sort by completion status
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      }
+      
+      // Then sort by due date within each group
       if (sortBy === "latest") {
         return b.dueDate.toMillis() - a.dueDate.toMillis();
       } else {
@@ -97,6 +108,24 @@ export default function Tasks() {
     dueDate.setHours(0, 0, 0, 0);
     return dueDate.getTime() === today.getTime();
   };
+
+  const handleTaskToggle = async (taskId: string, completed: boolean) => {
+    if (!user?.uid) return;
+
+    try {
+      const taskRef = doc(db, 'coaches', user.uid, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        completed: !completed,
+        completedAt: !completed ? Timestamp.now() : null
+      });
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
+  // Separate completed and upcoming tasks
+  const upcomingTasks = filteredTasks.filter(task => !task.completed);
+  const completedTasks = filteredTasks.filter(task => task.completed);
 
   return (
     <Layout>
@@ -162,7 +191,7 @@ export default function Tasks() {
               <TableHeader>
                 <TableRow className="border-b border-gray-200">
                   <TableHead className="text-gray-600 font-medium w-16">
-                    <div className="w-4 h-4 rounded border border-gray-300"></div>
+                    <Checkbox className="w-4 h-4" disabled />
                   </TableHead>
                   <TableHead className="text-gray-600 font-medium">Task</TableHead>
                   <TableHead className="text-gray-600 font-medium text-right">
@@ -191,21 +220,25 @@ export default function Tasks() {
                 ) : (
                   <>
                     {/* Upcoming Section */}
-                    {filteredTasks.length > 0 && (
+                    {upcomingTasks.length > 0 && (
                       <>
                         <TableRow>
                           <TableCell colSpan={3} className="py-2">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-gray-700">Upcoming</span>
-                              <span className="text-sm text-gray-500">{filteredTasks.length}</span>
+                              <span className="text-sm text-gray-500">{upcomingTasks.length}</span>
                             </div>
                           </TableCell>
                         </TableRow>
                         
-                        {filteredTasks.map((task) => (
+                        {upcomingTasks.map((task) => (
                           <TableRow key={task.id} className="hover:bg-gray-50">
                             <TableCell>
-                              <div className="w-4 h-4 rounded border border-gray-300"></div>
+                              <Checkbox
+                                checked={task.completed}
+                                onCheckedChange={() => handleTaskToggle(task.id, task.completed)}
+                                className="w-4 h-4"
+                              />
                             </TableCell>
                             <TableCell>
                               <span className="text-gray-900">{task.name}</span>
@@ -221,6 +254,40 @@ export default function Tasks() {
                                 {isOverdue(task.dueDate) && "Due "}
                                 {formatDueDate(task.dueDate)}
                                 {isOverdue(task.dueDate) && " ago"}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Completed Section */}
+                    {completedTasks.length > 0 && (
+                      <>
+                        <TableRow>
+                          <TableCell colSpan={3} className="py-2 pt-6">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700">Completed</span>
+                              <span className="text-sm text-gray-500">{completedTasks.length}</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {completedTasks.map((task) => (
+                          <TableRow key={task.id} className="hover:bg-gray-50 opacity-75">
+                            <TableCell>
+                              <Checkbox
+                                checked={task.completed}
+                                onCheckedChange={() => handleTaskToggle(task.id, task.completed)}
+                                className="w-4 h-4"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-500 line-through">{task.name}</span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className="text-sm text-gray-400">
+                                {task.completedAt && format(task.completedAt.toDate(), "MMM d")}
                               </span>
                             </TableCell>
                           </TableRow>

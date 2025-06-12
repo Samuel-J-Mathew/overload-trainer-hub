@@ -48,6 +48,7 @@ export const AddTaskModal = ({ open, onOpenChange }: AddTaskModalProps) => {
       await addDoc(tasksRef, {
         name: taskName.trim(),
         dueDate: dueDateTimestamp,
+        completed: false,
         createdAt: serverTimestamp()
       });
 
