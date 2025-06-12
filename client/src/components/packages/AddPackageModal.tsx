@@ -277,7 +277,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
             </div>
           </div>
 
-          {duration && totalPrice && (
+          {duration && monthlyPrice && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Total payout for this package:</span>
@@ -300,7 +300,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
             </Button>
             <Button
               type="submit"
-              disabled={creating || !packageName || !planType || !duration || !totalPrice}
+              disabled={creating || !packageName || !planType || !duration || !monthlyPrice}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {creating ? (
