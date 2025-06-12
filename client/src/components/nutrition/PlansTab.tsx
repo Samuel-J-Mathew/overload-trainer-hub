@@ -53,7 +53,7 @@ export const PlansTab = () => {
           description: data.description,
           type: data.type,
           createdAt: data.createdAt,
-          clientId: clientId,
+
           mealCount
         });
       }
@@ -63,7 +63,7 @@ export const PlansTab = () => {
     });
 
     return () => unsubscribe();
-  }, [user?.uid, selectedClientId]);
+  }, [user?.uid]);
 
   const updatePlan = (updatedPlan: Plan) => {
     setPlans(plans.map(plan => plan.id === updatedPlan.id ? updatedPlan : plan));
@@ -188,7 +188,6 @@ export const PlansTab = () => {
       <AddPlanModal
         open={showAddPlanModal}
         onOpenChange={setShowAddPlanModal}
-        clientId={selectedClientId || defaultClientId}
       />
     </div>
   );

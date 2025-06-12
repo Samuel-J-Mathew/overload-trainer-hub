@@ -13,10 +13,9 @@ import { ChefHat, Loader2 } from "lucide-react";
 interface AddStandaloneMealModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clientId: string;
 }
 
-export const AddStandaloneMealModal = ({ open, onOpenChange, clientId }: AddStandaloneMealModalProps) => {
+export const AddStandaloneMealModal = ({ open, onOpenChange }: AddStandaloneMealModalProps) => {
   const { user } = useAuth();
 
   const [creating, setCreating] = useState(false);

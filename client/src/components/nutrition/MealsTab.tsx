@@ -21,16 +21,13 @@ export const MealsTab = () => {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-  // For demo purposes, using a default client ID - in real app this would come from selected client
-  const defaultClientId = "demo-client-123";
 
   // Load standalone meals from Firebase
   useEffect(() => {
     if (!user?.uid) return;
 
-    const clientId = selectedClientId || defaultClientId;
+
     const mealsRef = collection(db, 'coaches', user.uid, 'nutritionMeals');
     
     const unsubscribe = onSnapshot(mealsRef, (snapshot) => {
@@ -44,7 +41,7 @@ export const MealsTab = () => {
           description: data.description,
           instructions: data.instructions,
           createdAt: data.createdAt,
-          clientId: clientId
+
         });
       });
       
@@ -53,7 +50,7 @@ export const MealsTab = () => {
     });
 
     return () => unsubscribe();
-  }, [user?.uid, selectedClientId]);
+  }, [user?.uid]);
 
   return (
     <div className="space-y-6">
@@ -136,7 +133,6 @@ export const MealsTab = () => {
       <AddStandaloneMealModal
         open={showAddMealModal}
         onOpenChange={setShowAddMealModal}
-        clientId={selectedClientId || defaultClientId}
       />
     </div>
   );
