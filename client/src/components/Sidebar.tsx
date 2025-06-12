@@ -21,7 +21,7 @@ import { Link, useLocation } from "wouter";
 const navigation = [
   { name: "Clients", icon: Users, href: "/" },
   { name: "Check Ins", icon: ClipboardCheck, href: "#" },
-  { name: "Tasks", icon: CheckSquare, href: "#" },
+  { name: "Tasks", icon: CheckSquare, href: "/tasks" },
   { name: "Messages", icon: MessageSquare, href: "#" },
   { name: "Packages", icon: Package, href: "/packages" },
   { name: "Nutrition", icon: Apple, href: "/nutrition" },
