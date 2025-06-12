@@ -1,15 +1,26 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
+import { Package, Loader2 } from "lucide-react";
 
 interface AddPackageModalProps {
   open: boolean;
@@ -17,302 +28,197 @@ interface AddPackageModalProps {
 }
 
 export const AddPackageModal = ({ open, onOpenChange }: AddPackageModalProps) => {
+  const { user } = useAuth();
+
   const [creating, setCreating] = useState(false);
   const [packageName, setPackageName] = useState("");
-  const [description, setDescription] = useState("");
+  const [packageDescription, setPackageDescription] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [planType, setPlanType] = useState("");
+  const [planType, setPlanType] = useState("monthly");
   const [duration, setDuration] = useState("");
   const [monthlyPrice, setMonthlyPrice] = useState("");
-  
-  const { user } = useAuth();
-  const { toast } = useToast();
 
-  const planTypes = [
-    "1-on-1 Coaching",
-    "Group Program", 
-    "Online Training",
-    "Nutrition Coaching",
-    "Custom Program"
-  ];
-
-  const currencies = [
-    { value: "USD", label: "USD ($)" },
-    { value: "EUR", label: "EUR (€)" },
-    { value: "GBP", label: "GBP (£)" }
-  ];
-
-  const calculateTotalPrice = () => {
-    const pricePerMonth = parseFloat(monthlyPrice) || 0;
-    const months = parseInt(duration) || 1;
-    return pricePerMonth * months;
-  };
-
-  const resetForm = () => {
-    setPackageName("");
-    setDescription("");
-    setCurrency("USD");
-    setPlanType("");
-    setDuration("");
-    setMonthlyPrice("");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user?.uid || !packageName || !planType || !duration || !monthlyPrice) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const durationNum = parseInt(duration);
-    const priceNum = parseFloat(monthlyPrice);
-
-    if (durationNum <= 0) {
-      toast({
-        title: "Error", 
-        description: "Duration must be greater than 0.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (priceNum <= 0) {
-      toast({
-        title: "Error",
-        description: "Price must be greater than 0.",
-        variant: "destructive", 
-      });
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!packageName.trim() || !monthlyPrice || !duration || !user?.uid) return;
 
     setCreating(true);
-    
     try {
       const packagesRef = collection(db, 'coaches', user.uid, 'packages');
       
+      const monthlyPriceNum = parseFloat(monthlyPrice);
+      const durationNum = parseInt(duration);
+      const totalPrice = monthlyPriceNum * durationNum;
+      
       await addDoc(packagesRef, {
-        name: packageName,
-        description: description || "",
+        name: packageName.trim(),
+        description: packageDescription.trim(),
         currency,
         planType,
         duration: durationNum,
-        totalPrice: calculateTotalPrice(),
-        payoutPerMonth: priceNum,
+        totalPrice,
+        payoutPerMonth: monthlyPriceNum,
         createdAt: serverTimestamp()
       });
 
-      toast({
-        title: "Success",
-        description: "Package created successfully!",
-      });
-
+      // Reset form
       resetForm();
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating package:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create package. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setCreating(false);
     }
+    setCreating(false);
+  };
+
+  const resetForm = () => {
+    setPackageName("");
+    setPackageDescription("");
+    setCurrency("USD");
+    setPlanType("monthly");
+    setDuration("");
+    setMonthlyPrice("");
   };
 
   const handleClose = () => {
-    if (!creating) {
-      resetForm();
-      onOpenChange(false);
-    }
+    resetForm();
+    onOpenChange(false);
   };
+
+  const totalPrice = monthlyPrice && duration ? 
+    (parseFloat(monthlyPrice) * parseInt(duration)).toFixed(2) : "0.00";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b">
-          <DialogTitle className="text-xl font-semibold">Setup A New Package 📦</DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            disabled={creating}
-            className="h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+      <DialogContent className="sm:max-w-[600px] bg-gray-900 border-gray-700">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Package className="h-5 w-5" />
+            Add New Package
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Create a new coaching package with pricing and duration details.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-6 py-4 border-b">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-              1
-            </div>
-            <span className="font-medium text-blue-600">Setup</span>
+        <div className="grid gap-6 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name" className="text-white">Package Name</Label>
+            <Input
+              id="name"
+              value={packageName}
+              onChange={(e) => setPackageName(e.target.value)}
+              placeholder="e.g., 12-Week Transformation Program"
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm">
-              2
-            </div>
-            <span className="text-gray-500">Automations</span>
+
+          <div className="grid gap-2">
+            <Label htmlFor="description" className="text-white">Description</Label>
+            <Textarea
+              id="description"
+              value={packageDescription}
+              onChange={(e) => setPackageDescription(e.target.value)}
+              placeholder="Describe what's included in this package..."
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 min-h-[100px]"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm">
-              3
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="currency" className="text-white">Currency</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <span className="text-gray-500">Benefits</span>
+
+            <div className="grid gap-2">
+              <Label htmlFor="planType" className="text-white">Plan Type</Label>
+              <Select value={planType} onValueChange={setPlanType}>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="one-time">One-time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="duration" className="text-white">Duration (months)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="12"
+                min="1"
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="monthlyPayout" className="text-white">Monthly Price</Label>
+              <Input
+                id="monthlyPayout"
+                type="number"
+                step="0.01"
+                value={monthlyPrice}
+                onChange={(e) => setMonthlyPrice(e.target.value)}
+                placeholder="200.00"
+                min="0"
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Total Package Price:</span>
+              <span className="text-2xl font-bold text-white">
+                {currency === 'USD' && '$'}
+                {currency === 'EUR' && '€'}
+                {currency === 'GBP' && '£'}
+                {currency === 'CAD' && '$'}
+                {totalPrice}
+              </span>
+            </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="packageName" className="text-sm font-medium">
-              Package Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="packageName"
-              placeholder="90 Day Program"
-              value={packageName}
-              onChange={(e) => setPackageName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
-              Package Description <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Get in the best shape of your life in 90 days 💪"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Currency <span className="text-red-500">*</span>
-              </Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((curr) => (
-                    <SelectItem key={curr.value} value={curr.value}>
-                      {curr.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Type of plan <span className="text-red-500">*</span>
-              </Label>
-              <Select value={planType} onValueChange={setPlanType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Monthly" />
-                </SelectTrigger>
-                <SelectContent>
-                  {planTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                For how long? <span className="text-red-500">*</span>
-              </Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger>
-                  <SelectValue placeholder="1 Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 12].map((months) => (
-                    <SelectItem key={months} value={months.toString()}>
-                      {months} Month{months !== 1 ? 's' : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Price <span className="text-red-500">*</span>
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                </span>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={monthlyPrice}
-                  onChange={(e) => setMonthlyPrice(e.target.value)}
-                  className="pl-8"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                  per month
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {duration && monthlyPrice && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Total payout for this package:</span>
-                <span className="text-lg font-semibold text-blue-600">
-                  {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                  {calculateTotalPrice().toFixed(2)}
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-between pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={creating}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={creating || !packageName || !planType || !duration || !monthlyPrice}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {creating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Next'
-              )}
-            </Button>
-          </div>
-        </form>
+        <div className="flex justify-end gap-3">
+          <Button 
+            variant="outline" 
+            onClick={handleClose}
+            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!packageName.trim() || !monthlyPrice || !duration || creating}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {creating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Package'
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
