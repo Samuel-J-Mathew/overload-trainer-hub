@@ -14,10 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 interface AddPackageModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clientId: string;
 }
 
-export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModalProps) => {
+export const AddPackageModal = ({ open, onOpenChange }: AddPackageModalProps) => {
   const [creating, setCreating] = useState(false);
   const [packageName, setPackageName] = useState("");
   const [description, setDescription] = useState("");
@@ -94,7 +93,7 @@ export const AddPackageModal = ({ open, onOpenChange, clientId }: AddPackageModa
     setCreating(true);
     
     try {
-      const packagesRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'packages');
+      const packagesRef = collection(db, 'coaches', user.uid, 'packages');
       
       await addDoc(packagesRef, {
         name: packageName,

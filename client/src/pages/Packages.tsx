@@ -25,18 +25,13 @@ export default function Packages() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
   const { user } = useAuth();
 
-  // For demo purposes, using a default client ID - in real app this would come from selected client
-  const defaultClientId = "demo-client-123";
-
-  // Load packages for the selected client
+  // Load packages for the coach
   useEffect(() => {
     if (!user?.uid) return;
 
-    const clientId = selectedClientId || defaultClientId;
-    const packagesRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'packages');
+    const packagesRef = collection(db, 'coaches', user.uid, 'packages');
     const packagesQuery = query(packagesRef, orderBy('createdAt', 'desc'));
     
     const unsubscribe = onSnapshot(packagesQuery, (snapshot) => {
@@ -62,7 +57,7 @@ export default function Packages() {
     });
 
     return () => unsubscribe();
-  }, [user?.uid, selectedClientId]);
+  }, [user?.uid]);
 
   const formatCurrency = (amount: number, currency: string) => {
     const symbols: { [key: string]: string } = {
@@ -168,7 +163,6 @@ export default function Packages() {
         <AddPackageModal
           open={showAddModal}
           onOpenChange={setShowAddModal}
-          clientId={selectedClientId || defaultClientId}
         />
       </div>
     </Layout>
