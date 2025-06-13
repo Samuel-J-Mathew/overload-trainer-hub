@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AddExerciseModal } from "./AddExerciseModal";
+import { SeedExercisesButton } from "./SeedExercisesButton";
 import { collection, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Plus, Search, Dumbbell } from "lucide-react";
@@ -91,13 +92,16 @@ export const ExercisesTab = () => {
           <h2 className="text-lg font-semibold text-gray-900">Exercise Library</h2>
           <p className="text-sm text-gray-600">Manage your exercise database</p>
         </div>
-        <Button 
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Exercise
-        </Button>
+        <div className="flex gap-2">
+          <SeedExercisesButton />
+          <Button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Exercise
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

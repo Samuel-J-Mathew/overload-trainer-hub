@@ -25,6 +25,7 @@ const navigation = [
   { name: "Messages", icon: MessageSquare, href: "#" },
   { name: "Packages", icon: Package, href: "/packages" },
   { name: "Nutrition", icon: Apple, href: "/nutrition" },
+  { name: "Training", icon: Dumbbell, href: "/training" },
   { name: "Forms", icon: FileText, href: "/forms" },
 ];
 

@@ -10,6 +10,7 @@ import Forms from "@/pages/Forms";
 import Nutrition from "@/pages/Nutrition";
 import Packages from "@/pages/Packages";
 import Tasks from "@/pages/Tasks";
+import Training from "@/pages/Training";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -37,6 +38,7 @@ function AuthenticatedApp() {
       <Route path="/nutrition" component={Nutrition} />
       <Route path="/packages" component={Packages} />
       <Route path="/tasks" component={Tasks} />
+      <Route path="/training" component={Training} />
       <Route component={NotFound} />
     </Switch>
   );
