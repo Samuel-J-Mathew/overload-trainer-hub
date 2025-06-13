@@ -26,7 +26,6 @@ const navigation = [
   { name: "Packages", icon: Package, href: "/packages" },
   { name: "Nutrition", icon: Apple, href: "/nutrition" },
   { name: "Forms", icon: FileText, href: "/forms" },
-  { name: "Metrics", icon: BarChart3, href: "#" },
 ];
 
 export const Sidebar = () => {
