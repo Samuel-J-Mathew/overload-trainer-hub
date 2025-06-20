@@ -13,7 +13,7 @@ interface Program {
   id: string;
   name: string;
   description: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | null;
 }
 
 export const ProgramsTab = () => {
@@ -38,7 +38,7 @@ export const ProgramsTab = () => {
           id: doc.id,
           name: data.name,
           description: data.description,
-          createdAt: data.createdAt
+          createdAt: data.createdAt || null
         });
       });
       
@@ -50,9 +50,15 @@ export const ProgramsTab = () => {
   }, [user?.uid]);
 
   if (selectedProgram) {
+    // Convert to ProgramBuilder format with safe timestamp handling
+    const programForBuilder = {
+      ...selectedProgram,
+      createdAt: selectedProgram.createdAt || Timestamp.now()
+    };
+    
     return (
       <ProgramBuilder 
-        program={selectedProgram}
+        program={programForBuilder}
         onBack={() => setSelectedProgram(null)}
       />
     );
@@ -120,7 +126,7 @@ export const ProgramsTab = () => {
               <CardContent>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="h-4 w-4 mr-2" />
-                  Created {format(program.createdAt.toDate(), "MMM d, yyyy")}
+                  Created {program.createdAt ? format(program.createdAt.toDate(), "MMM d, yyyy") : "Just now"}
                 </div>
               </CardContent>
             </Card>
