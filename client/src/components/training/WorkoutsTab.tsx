@@ -15,6 +15,15 @@ import { collection, onSnapshot, query, collectionGroup, Timestamp, doc, updateD
 import { db } from "@/lib/firebase";
 import { Search, Calendar, Dumbbell, ArrowRight, ArrowLeft, X, Plus, GripVertical } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Workout {
   id: string;
@@ -55,6 +64,10 @@ export const WorkoutsTab = () => {
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showExercisePanel, setShowExercisePanel] = useState(false);
+  const [exerciseSets, setExerciseSets] = useState(3);
+  const [exerciseReps, setExerciseReps] = useState(10);
+  const [exerciseWeight, setExerciseWeight] = useState(0);
+  const [exerciseNotes, setExerciseNotes] = useState("");
 
   // Load all workouts from all programs
   useEffect(() => {
@@ -335,18 +348,107 @@ export const WorkoutsTab = () => {
         </div>
 
         {/* Exercise Details Modal */}
-        {selectedExercise && (
-          <ExerciseDetailsModal
-            open={selectedExercise !== null}
-            onOpenChange={(open) => {
-              if (!open) {
-                setSelectedExercise(null);
-              }
-            }}
-            exercise={selectedExercise}
-            onSubmit={addExerciseToWorkout}
-          />
-        )}
+        <Dialog 
+          open={selectedExercise !== null} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedExercise(null);
+              setExerciseSets(3);
+              setExerciseReps(10);
+              setExerciseWeight(0);
+              setExerciseNotes("");
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px] bg-white border-gray-200">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-gray-900">
+                <Dumbbell className="h-5 w-5" />
+                {selectedExercise?.name}
+              </DialogTitle>
+              <DialogDescription className="flex items-center gap-2">
+                <Badge className={getMuscleGroupColor(selectedExercise?.muscleGroup || "")}>
+                  {selectedExercise?.muscleGroup}
+                </Badge>
+                <span className="text-gray-600">Add to workout</span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="sets" className="text-gray-900">Sets</Label>
+                  <Input
+                    id="sets"
+                    type="number"
+                    value={exerciseSets}
+                    onChange={(e) => setExerciseSets(Number(e.target.value))}
+                    min="1"
+                    className="border-gray-300"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="reps" className="text-gray-900">Reps</Label>
+                  <Input
+                    id="reps"
+                    type="number"
+                    value={exerciseReps}
+                    onChange={(e) => setExerciseReps(Number(e.target.value))}
+                    min="1"
+                    className="border-gray-300"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="weight" className="text-gray-900">Weight (lbs)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    value={exerciseWeight}
+                    onChange={(e) => setExerciseWeight(Number(e.target.value))}
+                    min="0"
+                    step="5"
+                    className="border-gray-300"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="notes" className="text-gray-900">Notes (Optional)</Label>
+                <Textarea
+                  id="notes"
+                  value={exerciseNotes}
+                  onChange={(e) => setExerciseNotes(e.target.value)}
+                  placeholder="Exercise instructions or modifications..."
+                  className="border-gray-300 min-h-[60px]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedExercise(null)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  addExerciseToWorkout({
+                    sets: exerciseSets,
+                    reps: exerciseReps,
+                    weight: exerciseWeight,
+                    notes: exerciseNotes.trim()
+                  });
+                }}
+                disabled={exerciseSets < 1 || exerciseReps < 1}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Add Exercise
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
