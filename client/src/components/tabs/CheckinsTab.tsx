@@ -58,7 +58,7 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
   useEffect(() => {
     if (!user?.uid || !clientId) return;
 
-    const submissionsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'checkins', 'submissions');
+    const submissionsRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'submissions');
     const submissionsQuery = query(submissionsRef, orderBy('submittedAt', 'desc'));
     
     const unsubscribe = onSnapshot(submissionsQuery, (snapshot) => {
@@ -82,7 +82,7 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
   useEffect(() => {
     if (!user?.uid || !clientId) return;
 
-    const assignedRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'checkins', 'info');
+    const assignedRef = collection(db, 'coaches', user.uid, 'clients', clientId, 'assignedForms');
     const unsubscribe = onSnapshot(assignedRef, (snapshot) => {
       const loadedForms: AssignedForm[] = [];
       snapshot.forEach((doc) => {
@@ -160,7 +160,7 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
       });
 
       // Save to assigned forms
-      const assignedRef = doc(db, 'coaches', user.uid, 'clients', clientId, 'checkins', 'info', formId);
+      const assignedRef = doc(db, 'coaches', user.uid, 'clients', clientId, 'assignedForms', formId);
       await setDoc(assignedRef, {
         formName: formDoc.formName,
         assignedAt: serverTimestamp(),
