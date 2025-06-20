@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { collection, onSnapshot, query, collectionGroup, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Search, Calendar, Dumbbell, ArrowRight } from "lucide-react";
+import { Search, Calendar, Dumbbell, ArrowRight, ArrowLeft, X } from "lucide-react";
 import { format } from "date-fns";
 
 interface Workout {
@@ -91,6 +91,82 @@ export const WorkoutsTab = () => {
     );
     setFilteredWorkouts(filtered);
   }, [workouts, searchQuery]);
+
+  // Show workout detail view if a workout is selected
+  if (selectedWorkout) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedWorkout(null)}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Workouts
+          </Button>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{selectedWorkout.name}</h2>
+            <p className="text-sm text-gray-600">From program: {selectedWorkout.programName}</p>
+          </div>
+        </div>
+
+        {/* Workout Details */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Exercises</h3>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                {selectedWorkout.exerciseCount} exercises
+              </Badge>
+            </div>
+            
+            {selectedWorkout.exercises.length === 0 ? (
+              <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                <Dumbbell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">No exercises added to this workout yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {selectedWorkout.exercises.map((exercise, index) => (
+                  <div
+                    key={exercise.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{exercise.exerciseName}</h4>
+                        <p className="text-sm text-gray-600">
+                          {exercise.sets} sets × {exercise.reps} reps
+                          {exercise.weight > 0 && ` @ ${exercise.weight}lbs`}
+                        </p>
+                        {exercise.notes && (
+                          <p className="text-xs text-gray-500 mt-1">{exercise.notes}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Created: {format(selectedWorkout.createdAt.toDate(), "MMM d, yyyy")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -185,10 +261,7 @@ export const WorkoutsTab = () => {
                       variant="ghost"
                       size="sm"
                       className="text-gray-400 hover:text-gray-600"
-                      onClick={() => {
-                        // Navigate back to program builder with this workout selected
-                        window.location.hash = `#program-${workout.programId}-workout-${workout.id}`;
-                      }}
+                      onClick={() => setSelectedWorkout(workout)}
                     >
                       <ArrowRight className="h-4 w-4" />
                     </Button>
