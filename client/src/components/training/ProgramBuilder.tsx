@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,7 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
   const [draggedExercise, setDraggedExercise] = useState<Exercise | null>(null);
   const [deletingProgram, setDeletingProgram] = useState(false);
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
+  const initialLoadRef = useRef(true);
 
   // Load workout days
   useEffect(() => {
@@ -84,11 +85,12 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
       
       setWorkoutDays(loadedWorkouts);
       
-      // Set first workout as active if none selected and this is the initial load
-      if (loadedWorkouts.length > 0 && !activeWorkoutId) {
+      // Only set first workout as active on initial load
+      if (initialLoadRef.current && loadedWorkouts.length > 0 && !activeWorkoutId) {
         setActiveWorkoutId(loadedWorkouts[0].id);
+        initialLoadRef.current = false;
       }
-      // If we have an active workout, make sure it still exists in the loaded workouts
+      // Check if current active workout still exists after updates
       else if (activeWorkoutId && loadedWorkouts.length > 0) {
         const stillExists = loadedWorkouts.find(w => w.id === activeWorkoutId);
         if (!stillExists) {
