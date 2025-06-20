@@ -56,6 +56,7 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
   const [targetWorkoutId, setTargetWorkoutId] = useState<string | null>(null);
   const [draggedExercise, setDraggedExercise] = useState<Exercise | null>(null);
   const [deletingProgram, setDeletingProgram] = useState(false);
+  const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
 
   // Load workout days
   useEffect(() => {
@@ -76,10 +77,22 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
       });
       
       setWorkoutDays(loadedWorkouts);
+      
+      // Set first workout as active if none selected
+      if (loadedWorkouts.length > 0 && !activeWorkoutId) {
+        setActiveWorkoutId(loadedWorkouts[0].id);
+      }
     });
 
     return () => unsubscribe();
   }, [user?.uid, program.id]);
+
+  // Reset active workout if it gets deleted
+  useEffect(() => {
+    if (activeWorkoutId && !workoutDays.find(w => w.id === activeWorkoutId)) {
+      setActiveWorkoutId(workoutDays.length > 0 ? workoutDays[0].id : null);
+    }
+  }, [workoutDays, activeWorkoutId]);
 
   // Load exercises
   useEffect(() => {
