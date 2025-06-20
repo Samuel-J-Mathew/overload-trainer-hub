@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Eye, X } from "lucide-react";
+import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { collection, onSnapshot, orderBy, query, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -145,23 +146,26 @@ export default function CheckIns() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Check Ins</h1>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-gray-500">Loading check-ins...</div>
+      <Layout>
+        <div className="p-6">
+          <h1 className="text-3xl font-bold mb-6">Check Ins</h1>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-500">Loading check-ins...</div>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Check Ins</h1>
-        <div className="text-sm text-gray-600">
-          {submissions.length} unreviewed submission{submissions.length !== 1 ? 's' : ''}
+    <Layout>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Check Ins</h1>
+          <div className="text-sm text-gray-600">
+            {submissions.length} unreviewed submission{submissions.length !== 1 ? 's' : ''}
+          </div>
         </div>
-      </div>
 
       {submissions.length === 0 ? (
         <Card>
@@ -248,6 +252,7 @@ export default function CheckIns() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </Layout>
   );
 }

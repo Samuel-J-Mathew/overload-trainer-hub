@@ -120,6 +120,12 @@ coaches/{coachId}/clients/{clientId}
 - Phase 4: Full migration to PostgreSQL with Drizzle ORM
 
 ## Recent Changes
+- June 20, 2025: Created functional main Check Ins page accessible from sidebar navigation
+  - Built comprehensive Check Ins page at /checkins showing unreviewed submissions from all clients
+  - Made Check Ins sidebar tab clickable with proper routing
+  - Added Layout component to maintain sidebar navigation on Check Ins page
+  - Implemented review workflow with "Mark as Reviewed" functionality
+  - Custom fallback message: "No check ins found - You don't have any check-in submissions yet. Check back later!"
 - June 20, 2025: Enhanced Forms system with functional Preview and Schedule features
   - Removed "Reposition" button from Check-ins and Questionnaires builders
   - Implemented interactive preview modals showing form appearance to clients
