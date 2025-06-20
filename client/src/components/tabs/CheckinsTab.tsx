@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Eye, FileText, Calendar, Search, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { collection, onSnapshot, getDocs, setDoc, doc, serverTimestamp, orderBy, query } from "firebase/firestore";
+import { collection, onSnapshot, getDocs, setDoc, doc, serverTimestamp, orderBy, query, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +21,7 @@ interface Submission {
   formName: string;
   answers: { question: string; response: string }[];
   submittedAt: any;
+  reviewed?: boolean;
 }
 
 interface AssignedForm {
@@ -43,6 +44,7 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("submissions");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [unreviewed, setUnreviewed] = useState<Submission[]>([]);
   const [assignedForms, setAssignedForms] = useState<AssignedForm[]>([]);
   const [coachForms, setCoachForms] = useState<CoachForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +55,7 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
   const [selectedForm, setSelectedForm] = useState<AssignedForm | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [assigning, setAssigning] = useState(false);
+  const [markingReviewed, setMarkingReviewed] = useState(false);
 
   // Load submissions from Firebase
   useEffect(() => {
@@ -63,16 +66,28 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
     
     const unsubscribe = onSnapshot(submissionsQuery, (snapshot) => {
       const loadedSubmissions: Submission[] = [];
+      const unreviewedSubmissions: Submission[] = [];
+      
       snapshot.forEach((doc) => {
         const data = doc.data();
-        loadedSubmissions.push({
+        const submission = {
           id: doc.id,
           formName: data.formName,
           answers: data.answers || [],
-          submittedAt: data.submittedAt
-        });
+          submittedAt: data.submittedAt,
+          reviewed: data.reviewed || false
+        };
+        
+        loadedSubmissions.push(submission);
+        
+        // Only add to unreviewed if not reviewed
+        if (!submission.reviewed) {
+          unreviewedSubmissions.push(submission);
+        }
       });
+      
       setSubmissions(loadedSubmissions);
+      setUnreviewed(unreviewedSubmissions);
     });
 
     return () => unsubscribe();
@@ -186,6 +201,36 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
     }
   };
 
+  const handleMarkReviewed = async (submissionId: string) => {
+    if (!user?.uid || !clientId) return;
+
+    setMarkingReviewed(true);
+    try {
+      const submissionRef = doc(db, 'coaches', user.uid, 'clients', clientId, 'submissions', submissionId);
+      await updateDoc(submissionRef, {
+        reviewed: true,
+        reviewedAt: serverTimestamp()
+      });
+
+      toast({
+        title: "Success",
+        description: "Check-in marked as reviewed",
+      });
+
+      setShowSubmissionModal(false);
+      setSelectedSubmission(null);
+    } catch (error) {
+      console.error('Error marking submission as reviewed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark as reviewed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setMarkingReviewed(false);
+    }
+  };
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return "Just now";
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -213,17 +258,17 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
         </TabsList>
 
         <TabsContent value="submissions" className="space-y-4">
-          {submissions.length === 0 ? (
+          {unreviewed.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No submissions yet</h3>
-                <p className="text-gray-500">Client submissions will appear here when forms are completed</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No check ins found</h3>
+                <p className="text-gray-500">You don't have any check-in submissions yet. Check back later!</p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
-              {submissions.map((submission) => (
+              {unreviewed.map((submission) => (
                 <Card key={submission.id} className="cursor-pointer hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -410,6 +455,18 @@ export const CheckinsTab = ({ clientId }: CheckinsTabProps) => {
                   </div>
                 ))}
               </div>
+              
+              {!selectedSubmission.reviewed && (
+                <div className="flex justify-end pt-4 border-t">
+                  <Button
+                    onClick={() => handleMarkReviewed(selectedSubmission.id)}
+                    disabled={markingReviewed}
+                    className="bg-black hover:bg-gray-800 text-white"
+                  >
+                    {markingReviewed ? "Marking as Reviewed..." : "Mark as Reviewed"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
