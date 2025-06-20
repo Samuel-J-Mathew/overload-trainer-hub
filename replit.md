@@ -119,8 +119,13 @@ coaches/{coachId}/clients/{clientId}
 - Phase 3: Read from PostgreSQL, write to both
 - Phase 4: Full migration to PostgreSQL with Drizzle ORM
 
-## Changelog
-- June 20, 2025. Initial setup
+## Recent Changes
+- January 20, 2025: Built comprehensive Training page with Programs, Workouts, and Exercises tabs
+  - Implemented drag-and-drop workout builder with exercise library
+  - Added Firebase integration for training data under coach accounts
+  - Created program builder with workout days and exercise management
+  - Fixed timestamp handling for newly created programs
+- June 20, 2025: Initial setup with Firebase authentication and client management
 
 ## User Preferences
 
