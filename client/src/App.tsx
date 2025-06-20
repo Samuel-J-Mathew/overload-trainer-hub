@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import Forms from "@/pages/Forms";
+import Messages from "@/pages/Messages";
 import Nutrition from "@/pages/Nutrition";
 import Packages from "@/pages/Packages";
 import Tasks from "@/pages/Tasks";
@@ -35,6 +36,7 @@ function AuthenticatedApp() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/forms" component={Forms} />
+      <Route path="/messages" component={Messages} />
       <Route path="/nutrition" component={Nutrition} />
       <Route path="/packages" component={Packages} />
       <Route path="/tasks" component={Tasks} />
