@@ -177,7 +177,7 @@ export default function Messages() {
           </div>
           <Button
             onClick={() => setShowStartChatModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-black hover:bg-gray-800 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             New Chat
@@ -220,7 +220,7 @@ export default function Messages() {
               {!searchQuery && (
                 <Button
                   onClick={() => setShowStartChatModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-black hover:bg-gray-800 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Start Your First Chat

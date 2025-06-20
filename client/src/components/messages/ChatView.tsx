@@ -185,13 +185,13 @@ export const ChatView = ({ chat, onBack }: ChatViewProps) => {
                 <div
                   className={`rounded-2xl px-4 py-2 ${
                     message.sender === 'coach'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-black text-white'
                       : 'bg-white border border-gray-200 text-gray-900'
                   }`}
                 >
                   <p className="text-sm">{message.text}</p>
                   <div className={`flex items-center mt-1 text-xs ${
-                    message.sender === 'coach' ? 'text-blue-100' : 'text-gray-500'
+                    message.sender === 'coach' ? 'text-gray-300' : 'text-gray-500'
                   }`}>
                     <Clock className="h-3 w-3 mr-1" />
                     {formatMessageTime(message.timestamp)}
@@ -227,7 +227,7 @@ export const ChatView = ({ chat, onBack }: ChatViewProps) => {
           <Button
             type="submit"
             disabled={!newMessage.trim() || sending}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-black hover:bg-gray-800 text-white"
           >
             {sending ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
