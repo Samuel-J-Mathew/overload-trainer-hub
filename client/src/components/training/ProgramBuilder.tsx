@@ -8,7 +8,13 @@ import { AddWorkoutModal } from "./AddWorkoutModal";
 import { ExerciseDetailsModal } from "./ExerciseDetailsModal";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, Timestamp, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ArrowLeft, Plus, Search, Dumbbell, GripVertical, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Search, Dumbbell, GripVertical, Trash2, X, MoreHorizontal } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 interface Program {
   id: string;
@@ -211,6 +217,40 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
     setDeletingProgram(false);
   };
 
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (!user?.uid) return;
+    
+    const confirmDelete = window.confirm('Are you sure you want to delete this workout?');
+    if (!confirmDelete) return;
+
+    try {
+      const workoutRef = doc(db, 'coaches', user.uid, 'Programs', program.id, 'workouts', workoutId);
+      await deleteDoc(workoutRef);
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      alert('Error deleting workout. Please try again.');
+    }
+  };
+
+  const handleRemoveExercise = async (workoutId: string, exerciseId: string) => {
+    if (!user?.uid) return;
+
+    try {
+      const workout = workoutDays.find(w => w.id === workoutId);
+      if (!workout) return;
+
+      const updatedExercises = workout.exercises.filter(ex => ex.id !== exerciseId);
+      
+      const workoutRef = doc(db, 'coaches', user.uid, 'Programs', program.id, 'workouts', workoutId);
+      await updateDoc(workoutRef, {
+        exercises: updatedExercises
+      });
+    } catch (error) {
+      console.error('Error removing exercise:', error);
+      alert('Error removing exercise. Please try again.');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Exercise Sidebar */}
@@ -292,14 +332,19 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
           </div>
 
           {/* Workout Days Tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto">
             {workoutDays.map((workout) => (
-              <div
+              <button
                 key={workout.id}
-                className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                onClick={() => setActiveWorkoutId(workout.id)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeWorkoutId === workout.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                }`}
               >
                 {workout.name}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -320,63 +365,107 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {workoutDays.map((workout) => (
-                <Card
-                  key={workout.id}
-                  className="min-h-[400px]"
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, workout.id)}
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-semibold text-gray-900">
-                      {workout.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {workout.exercises.length === 0 ? (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                        <Dumbbell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">
-                          Drag an exercise here or click the button below
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-3"
-                          onClick={() => {
-                            // Could open exercise selector modal
-                          }}
-                        >
-                          Add Exercise
-                        </Button>
+            <>
+              {/* Active Workout Display */}
+              {activeWorkoutId && workoutDays.find(w => w.id === activeWorkoutId) && (() => {
+                const workout = workoutDays.find(w => w.id === activeWorkoutId)!;
+                return (
+                  <Card
+                    className="min-h-[400px]"
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, workout.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          {workout.name}
+                        </CardTitle>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleDeleteWorkout(workout.id)}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Workout
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {workout.exercises.map((exercise, index) => (
-                          <div
-                            key={exercise.id}
-                            className="p-3 bg-gray-50 rounded-lg border"
+                    </CardHeader>
+                    <CardContent>
+                      {workout.exercises.length === 0 ? (
+                        <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                          <Dumbbell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">
+                            Drag an exercise here or click the button below
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3"
+                            onClick={() => {
+                              setTargetWorkoutId(workout.id);
+                              setSelectedExercise(null);
+                            }}
                           >
-                            <div className="font-medium text-gray-900 mb-1">
-                              {exercise.exerciseName}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {exercise.sets} sets × {exercise.reps} reps @ {exercise.weight}lbs
-                            </div>
-                            {exercise.notes && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {exercise.notes}
+                            Add Exercise
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {workout.exercises.map((exercise, index) => (
+                            <div
+                              key={exercise.id}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-gray-600">{index + 1}</span>
+                                <div>
+                                  <div className="font-medium text-gray-900 mb-1">
+                                    {exercise.exerciseName}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {exercise.sets} sets × {exercise.reps} reps
+                                    {exercise.weight > 0 && ` @ ${exercise.weight}lbs`}
+                                  </div>
+                                  {exercise.notes && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {exercise.notes}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveExercise(workout.id, exercise.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <Button
+                        onClick={() => {
+                          setTargetWorkoutId(workout.id);
+                          setSelectedExercise(null);
+                        }}
+                        variant="outline"
+                        className="w-full mt-4"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Exercise
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+            </>
           )}
         </div>
       </div>
