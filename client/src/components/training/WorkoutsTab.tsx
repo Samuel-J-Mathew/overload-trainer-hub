@@ -22,7 +22,18 @@ interface Workout {
   programId: string;
   programName: string;
   exerciseCount: number;
+  exercises: WorkoutExercise[];
   createdAt: Timestamp;
+}
+
+interface WorkoutExercise {
+  id: string;
+  exerciseId: string;
+  exerciseName: string;
+  sets: number;
+  reps: number;
+  weight: number;
+  notes?: string;
 }
 
 export const WorkoutsTab = () => {
@@ -31,6 +42,7 @@ export const WorkoutsTab = () => {
   const [filteredWorkouts, setFilteredWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
 
   // Load all workouts from all programs
   useEffect(() => {
@@ -58,6 +70,7 @@ export const WorkoutsTab = () => {
             programId: programDoc.id,
             programName: programData.name,
             exerciseCount: workoutData.exercises?.length || 0,
+            exercises: workoutData.exercises || [],
             createdAt: workoutData.createdAt || programData.createdAt
           });
         });
