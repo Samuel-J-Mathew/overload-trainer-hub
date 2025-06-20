@@ -9,8 +9,8 @@ import { collection, onSnapshot, query, orderBy, limit, doc, getDoc, addDoc, ser
 import { db } from "@/lib/firebase";
 import { Search, Plus, ArrowLeft, Send, MessageCircle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { StartChatModal } from "@/components/messages/StartChatModal";
-import { ChatView } from "@/components/messages/ChatView";
+import { StartChatModal } from "@/components/messages";
+import { ChatView } from "@/components/messages";
 
 interface Client {
   id: string;

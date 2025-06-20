@@ -22,7 +22,7 @@ const navigation = [
   { name: "Clients", icon: Users, href: "/" },
   { name: "Check Ins", icon: ClipboardCheck, href: "#" },
   { name: "Tasks", icon: CheckSquare, href: "/tasks" },
-  { name: "Messages", icon: MessageSquare, href: "#" },
+  { name: "Messages", icon: MessageSquare, href: "/messages" },
   { name: "Packages", icon: Package, href: "/packages" },
   { name: "Nutrition", icon: Apple, href: "/nutrition" },
   { name: "Training", icon: Dumbbell, href: "/training" },
