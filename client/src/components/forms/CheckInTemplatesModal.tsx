@@ -33,7 +33,7 @@ interface Template {
 const checkInTemplates: Template[] = [
   {
     id: "weekly-checkin",
-    name: "Weekly Checkin",
+    name: "Weekly Check-In",
     description: "Comprehensive weekly progress tracking with workouts, metrics, and reflection",
     category: "Progress Tracking",
     questionCount: 10,
