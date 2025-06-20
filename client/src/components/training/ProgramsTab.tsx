@@ -101,7 +101,7 @@ export const ProgramsTab = () => {
         </div>
         <Button 
           onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-black hover:bg-gray-800 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Program
@@ -129,7 +129,7 @@ export const ProgramsTab = () => {
           <p className="text-gray-500 mb-4">Create your first training program to get started</p>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-black hover:bg-gray-800 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create First Program
