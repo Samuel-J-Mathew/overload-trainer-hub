@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import CheckIns from "@/pages/CheckIns";
 import Forms from "@/pages/Forms";
 import Messages from "@/pages/Messages";
 import Nutrition from "@/pages/Nutrition";
@@ -35,6 +36,7 @@ function AuthenticatedApp() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/checkins" component={CheckIns} />
       <Route path="/forms" component={Forms} />
       <Route path="/messages" component={Messages} />
       <Route path="/nutrition" component={Nutrition} />

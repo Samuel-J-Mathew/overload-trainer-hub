@@ -20,7 +20,7 @@ import { Link, useLocation } from "wouter";
 
 const navigation = [
   { name: "Clients", icon: Users, href: "/" },
-  { name: "Check Ins", icon: ClipboardCheck, href: "#" },
+  { name: "Check Ins", icon: ClipboardCheck, href: "/checkins" },
   { name: "Tasks", icon: CheckSquare, href: "/tasks" },
   { name: "Messages", icon: MessageSquare, href: "/messages" },
   { name: "Packages", icon: Package, href: "/packages" },
