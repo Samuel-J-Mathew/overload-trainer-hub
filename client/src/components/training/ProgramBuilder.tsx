@@ -84,21 +84,23 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
       
       setWorkoutDays(loadedWorkouts);
       
-      // Set first workout as active if none selected
+      // Set first workout as active if none selected and this is the initial load
       if (loadedWorkouts.length > 0 && !activeWorkoutId) {
         setActiveWorkoutId(loadedWorkouts[0].id);
+      }
+      // If we have an active workout, make sure it still exists in the loaded workouts
+      else if (activeWorkoutId && loadedWorkouts.length > 0) {
+        const stillExists = loadedWorkouts.find(w => w.id === activeWorkoutId);
+        if (!stillExists) {
+          setActiveWorkoutId(loadedWorkouts[0].id);
+        }
       }
     });
 
     return () => unsubscribe();
   }, [user?.uid, program.id]);
 
-  // Reset active workout if it gets deleted
-  useEffect(() => {
-    if (activeWorkoutId && !workoutDays.find(w => w.id === activeWorkoutId)) {
-      setActiveWorkoutId(workoutDays.length > 0 ? workoutDays[0].id : null);
-    }
-  }, [workoutDays, activeWorkoutId]);
+
 
   // Load exercises
   useEffect(() => {
