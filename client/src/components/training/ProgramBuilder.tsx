@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddWorkoutModal } from "./AddWorkoutModal";
 import { ExerciseDetailsModal } from "./ExerciseDetailsModal";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, Timestamp, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ArrowLeft, Plus, Search, Dumbbell, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Search, Dumbbell, GripVertical, Trash2 } from "lucide-react";
 
 interface Program {
   id: string;
@@ -55,6 +55,7 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [targetWorkoutId, setTargetWorkoutId] = useState<string | null>(null);
   const [draggedExercise, setDraggedExercise] = useState<Exercise | null>(null);
+  const [deletingProgram, setDeletingProgram] = useState(false);
 
   // Load workout days
   useEffect(() => {
@@ -179,6 +180,24 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
     return colors[muscleGroup] || "bg-gray-100 text-gray-800";
   };
 
+  const handleDeleteProgram = async () => {
+    if (!user?.uid) return;
+    
+    const confirmDelete = window.confirm('Are you sure you want to delete this program? This action cannot be undone and will delete all workouts and exercises.');
+    if (!confirmDelete) return;
+
+    setDeletingProgram(true);
+    try {
+      const programRef = doc(db, 'coaches', user.uid, 'Programs', program.id);
+      await deleteDoc(programRef);
+      onBack(); // Navigate back to programs list
+    } catch (error) {
+      console.error('Error deleting program:', error);
+      alert('Error deleting program. Please try again.');
+    }
+    setDeletingProgram(false);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Exercise Sidebar */}
@@ -240,12 +259,23 @@ export const ProgramBuilder = ({ program, onBack }: ProgramBuilderProps) => {
               <h1 className="text-xl font-semibold text-gray-900">{program.name}</h1>
               <p className="text-sm text-gray-600">{program.description || "No description"}</p>
             </div>
-            <Button
-              onClick={() => setShowAddWorkoutModal(true)}
-              className="ml-auto bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Add Workout
-            </Button>
+            <div className="ml-auto flex gap-2">
+              <Button
+                onClick={handleDeleteProgram}
+                disabled={deletingProgram}
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deletingProgram ? 'Deleting...' : 'Delete Program'}
+              </Button>
+              <Button
+                onClick={() => setShowAddWorkoutModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Add Workout
+              </Button>
+            </div>
           </div>
 
           {/* Workout Days Tabs */}
