@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Eye, Calendar, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Plus, Eye, Calendar } from "lucide-react";
 import { AddQuestionModal } from "./AddQuestionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { collection, addDoc, onSnapshot, serverTimestamp, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { FormPreview } from "./FormPreview";
+import { ScheduleModal } from "./ScheduleModal";
 
 interface Question {
   id: string;
@@ -32,6 +34,8 @@ interface CheckInBuilderProps {
 export const CheckInBuilder = ({ checkIn, onBack, onUpdate }: CheckInBuilderProps) => {
   const { user } = useAuth();
   const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -119,17 +123,21 @@ export const CheckInBuilder = ({ checkIn, onBack, onUpdate }: CheckInBuilderProp
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowPreview(true)}
+          >
             <Eye className="w-4 h-4 mr-2" />
             Preview
           </Button>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowSchedule(true)}
+          >
             <Calendar className="w-4 h-4 mr-2" />
             Schedule
-          </Button>
-          <Button variant="outline" size="sm">
-            <MoreHorizontal className="w-4 h-4 mr-2" />
-            Reposition
           </Button>
           <Button 
             onClick={() => setShowAddQuestionModal(true)}
@@ -183,6 +191,22 @@ export const CheckInBuilder = ({ checkIn, onBack, onUpdate }: CheckInBuilderProp
         open={showAddQuestionModal}
         onOpenChange={setShowAddQuestionModal}
         onAddQuestion={addQuestion}
+      />
+
+      <FormPreview
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        questions={questions}
+        formName={checkIn.formName}
+        formType="checkin"
+      />
+
+      <ScheduleModal
+        open={showSchedule}
+        onOpenChange={setShowSchedule}
+        formId={checkIn.id}
+        formName={checkIn.formName}
+        formType="checkin"
       />
     </div>
   );
