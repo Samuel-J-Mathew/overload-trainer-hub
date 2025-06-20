@@ -120,6 +120,13 @@ coaches/{coachId}/clients/{clientId}
 - Phase 4: Full migration to PostgreSQL with Drizzle ORM
 
 ## Recent Changes
+- June 20, 2025: Enhanced Forms system with functional Preview and Schedule features
+  - Removed "Reposition" button from Check-ins and Questionnaires builders
+  - Implemented interactive preview modals showing form appearance to clients
+  - Added scheduling functionality with frequency, days, time, and date range options
+  - Created Check-in Templates system with "Weekly Check-In" and "Daily Check-In" templates
+  - Updated button colors throughout platform to black for consistent dark theme
+  - Added Templates button to Check-ins tab (similar to Questionnaires)
 - January 20, 2025: Built comprehensive Training page with Programs, Workouts, and Exercises tabs
   - Implemented drag-and-drop workout builder with exercise library
   - Added Firebase integration for training data under coach accounts

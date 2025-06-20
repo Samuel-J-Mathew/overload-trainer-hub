@@ -32,11 +32,68 @@ interface Template {
 
 const checkInTemplates: Template[] = [
   {
+    id: "daily-checkin",
+    name: "Daily Check-In",
+    description: "Quick daily tracking of physical and mental state, exercise, and progress",
+    category: "Daily Tracking",
+    questionCount: 8,
+    questions: [
+      {
+        questionText: "How are you feeling today physically and mentally?",
+        responseType: "text",
+        required: true,
+        order: 1
+      },
+      {
+        questionText: "How many minutes did you exercise today?",
+        responseType: "number",
+        required: true,
+        order: 2
+      },
+      {
+        questionText: "Did you stick to your meal plan today?",
+        responseType: "boolean",
+        required: true,
+        order: 3
+      },
+      {
+        questionText: "How would you rate your energy levels on a scale of 1-10?",
+        responseType: "scale",
+        required: true,
+        order: 4
+      },
+      {
+        questionText: "What is today's date?",
+        responseType: "text",
+        required: true,
+        order: 5
+      },
+      {
+        questionText: "Rate your overall satisfaction with today's progress",
+        responseType: "rating",
+        required: true,
+        order: 6
+      },
+      {
+        questionText: "What is your current weight?",
+        responseType: "number",
+        required: true,
+        order: 7
+      },
+      {
+        questionText: "Do you feel sore or fatigued in any particular areas?",
+        responseType: "textarea",
+        required: false,
+        order: 8
+      }
+    ]
+  },
+  {
     id: "weekly-checkin",
     name: "Weekly Check-In",
     description: "Comprehensive weekly progress tracking with workouts, metrics, and reflection",
     category: "Progress Tracking",
-    questionCount: 10,
+    questionCount: 11,
     questions: [
       {
         questionText: "What was your biggest win this week?",
