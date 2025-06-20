@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, FileText, Loader2 } from "lucide-react";
+import { Plus, FileText, Loader2, Sparkles } from "lucide-react";
 import { CheckInBuilder } from "./CheckInBuilder";
+import { CheckInTemplatesModal } from "./CheckInTemplatesModal";
 import { useAuth } from "@/hooks/useAuth";
 import { collection, doc, addDoc, onSnapshot, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -34,6 +35,7 @@ export const CheckInsTab = () => {
   const [selectedCheckIn, setSelectedCheckIn] = useState<CheckIn | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Load check-ins from Firebase
   useEffect(() => {
@@ -124,13 +126,23 @@ export const CheckInsTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-gray-900">Check-Ins</h2>
-        <Button 
-          onClick={() => setShowNameInput(true)}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Check-In
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button 
+            onClick={() => setShowTemplates(true)}
+            variant="outline"
+            className="border-gray-300"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Templates
+          </Button>
+          <Button 
+            onClick={() => setShowNameInput(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Check-In
+          </Button>
+        </div>
       </div>
 
       {showNameInput && (
@@ -228,6 +240,11 @@ export const CheckInsTab = () => {
           )}
         </>
       )}
+
+      <CheckInTemplatesModal
+        open={showTemplates}
+        onOpenChange={setShowTemplates}
+      />
     </div>
   );
 };
