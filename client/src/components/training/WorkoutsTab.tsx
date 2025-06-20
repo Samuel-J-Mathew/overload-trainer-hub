@@ -11,9 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { collection, onSnapshot, query, collectionGroup, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, query, collectionGroup, Timestamp, doc, updateDoc, arrayUnion, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Search, Calendar, Dumbbell, ArrowRight, ArrowLeft, X } from "lucide-react";
+import { Search, Calendar, Dumbbell, ArrowRight, ArrowLeft, X, Plus, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 
 interface Workout {
@@ -36,6 +36,13 @@ interface WorkoutExercise {
   notes?: string;
 }
 
+interface Exercise {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  description?: string;
+}
+
 export const WorkoutsTab = () => {
   const { user } = useAuth();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
@@ -43,6 +50,11 @@ export const WorkoutsTab = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
+  const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [showExercisePanel, setShowExercisePanel] = useState(false);
 
   // Load all workouts from all programs
   useEffect(() => {
@@ -92,6 +104,92 @@ export const WorkoutsTab = () => {
     setFilteredWorkouts(filtered);
   }, [workouts, searchQuery]);
 
+  // Load exercises
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const exercisesRef = collection(db, 'coaches', user.uid, 'exercises');
+    const exercisesQuery = query(exercisesRef, orderBy('name', 'asc'));
+    
+    const unsubscribe = onSnapshot(exercisesQuery, (snapshot) => {
+      const loadedExercises: Exercise[] = [];
+      snapshot.forEach((doc) => {
+        loadedExercises.push({
+          id: doc.id,
+          ...doc.data()
+        } as Exercise);
+      });
+      setExercises(loadedExercises);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  // Filter exercises
+  useEffect(() => {
+    const filtered = exercises.filter(exercise =>
+      exercise.name.toLowerCase().includes(exerciseSearchQuery.toLowerCase()) ||
+      exercise.muscleGroup.toLowerCase().includes(exerciseSearchQuery.toLowerCase())
+    );
+    setFilteredExercises(filtered);
+  }, [exercises, exerciseSearchQuery]);
+
+  const getMuscleGroupColor = (muscleGroup: string) => {
+    const colors: { [key: string]: string } = {
+      "Chest": "bg-red-100 text-red-800",
+      "Back": "bg-blue-100 text-blue-800",
+      "Legs": "bg-green-100 text-green-800",
+      "Shoulders": "bg-yellow-100 text-yellow-800",
+      "Arms": "bg-purple-100 text-purple-800",
+      "Biceps": "bg-purple-100 text-purple-800",
+      "Triceps": "bg-purple-100 text-purple-800",
+      "Abs": "bg-orange-100 text-orange-800",
+      "Core": "bg-orange-100 text-orange-800",
+      "Cardio": "bg-pink-100 text-pink-800"
+    };
+    return colors[muscleGroup] || "bg-gray-100 text-gray-800";
+  };
+
+  const addExerciseToWorkout = async (exerciseDetails: {
+    sets: number;
+    reps: number;
+    weight: number;
+    notes?: string;
+  }) => {
+    if (!selectedExercise || !selectedWorkout || !user?.uid) return;
+
+    try {
+      const workoutRef = doc(db, 'coaches', user.uid, 'Programs', selectedWorkout.programId, 'workouts', selectedWorkout.id);
+      
+      const newExercise: WorkoutExercise = {
+        id: `${selectedExercise.id}-${Date.now()}`,
+        exerciseId: selectedExercise.id,
+        exerciseName: selectedExercise.name,
+        sets: exerciseDetails.sets,
+        reps: exerciseDetails.reps,
+        weight: exerciseDetails.weight,
+        notes: exerciseDetails.notes
+      };
+
+      await updateDoc(workoutRef, {
+        exercises: arrayUnion(newExercise)
+      });
+
+      // Update local state
+      setSelectedWorkout(prev => prev ? {
+        ...prev,
+        exercises: [...prev.exercises, newExercise],
+        exerciseCount: prev.exerciseCount + 1
+      } : null);
+
+      setSelectedExercise(null);
+      setShowExercisePanel(false);
+    } catch (error) {
+      console.error('Error adding exercise to workout:', error);
+      alert('Error adding exercise. Please try again.');
+    }
+  };
+
   // Show workout detail view if a workout is selected
   if (selectedWorkout) {
     return (
@@ -113,14 +211,27 @@ export const WorkoutsTab = () => {
         </div>
 
         {/* Workout Details */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Exercises</h3>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                {selectedWorkout.exerciseCount} exercises
-              </Badge>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Workout Exercises */}
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Exercises</h3>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    {selectedWorkout.exerciseCount} exercises
+                  </Badge>
+                  <Button
+                    onClick={() => setShowExercisePanel(!showExercisePanel)}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Exercise
+                  </Button>
+                </div>
+              </div>
             
             {selectedWorkout.exercises.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
@@ -153,17 +264,89 @@ export const WorkoutsTab = () => {
                 ))}
               </div>
             )}
-          </div>
+            </div>
 
-          <div className="border-t pt-4">
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Created: {format(selectedWorkout.createdAt.toDate(), "MMM d, yyyy")}
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Created: {format(selectedWorkout.createdAt.toDate(), "MMM d, yyyy")}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Exercise Library Panel */}
+          {showExercisePanel && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Exercise Library</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowExercisePanel(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Exercise Search */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search exercises..."
+                  value={exerciseSearchQuery}
+                  onChange={(e) => setExerciseSearchQuery(e.target.value)}
+                  className="pl-10 border-gray-300"
+                />
+              </div>
+
+              {/* Exercise List */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {filteredExercises.map((exercise) => (
+                  <div
+                    key={exercise.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100"
+                    onClick={() => setSelectedExercise(exercise)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <GripVertical className="h-4 w-4 text-gray-400" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">{exercise.name}</h4>
+                        <Badge className={`text-xs ${getMuscleGroupColor(exercise.muscleGroup)}`}>
+                          {exercise.muscleGroup}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Plus className="h-4 w-4 text-gray-400" />
+                  </div>
+                ))}
+              </div>
+
+              {filteredExercises.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Dumbbell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p>No exercises found</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Exercise Details Modal */}
+        {selectedExercise && (
+          <ExerciseDetailsModal
+            open={selectedExercise !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedExercise(null);
+              }
+            }}
+            exercise={selectedExercise}
+            onSubmit={addExerciseToWorkout}
+          />
+        )}
       </div>
     );
   }
